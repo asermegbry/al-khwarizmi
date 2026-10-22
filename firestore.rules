@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // السعر هنا يجب أن يطابق REW.PRICE في js/rewards.js
+    function price() { return 150; }
+    function ids() { return ['khwarizmi','idrisi','farabi','biruni','haithm','sina','maqrizi','razi']; }
+    function schema(n) {
+      return n.keys().hasOnly(['name','points','coins','pfp','owned','done','ach','bd','wkKey','wkP','moKey','moP','streak','lastDay','log','t'])
+        && n.name is string && n.name.size() >= 2 && n.name.size() <= 20
+        && n.owned.size() <= 8 && n.owned.hasOnly(ids()) && n.log.size() <= 8
+        && (n.pfp == 'default' || n.pfp in n.owned)
+        && n.t == request.time;
+    }
+    function win(o, n, k, v) { return n[k] == o[k] ? (n[v] >= o[v] && n[v] - o[v] <= 400) : n[v] <= 400; }
+    // كسب نقاط: زيادة محدودة في كل عملية، وفاصل ثانيتين بين العمليات
+    function earn(o, n) {
+      return n.owned == o.owned && n.pfp == o.pfp && n.name == o.name
+        && request.time > o.t + duration.value(2, 's')
+        && n.points >= o.points && n.points - o.points <= 400
+        && n.coins >= o.coins && n.coins - o.coins <= 400
+        && win(o, n, 'wkKey', 'wkP') && win(o, n, 'moKey', 'moP')
+        && n.streak <= o.streak + 1;
+    }
+    // شراء صورة: يخصم السعر بالضبط ويضيف صورة واحدة
+    function buy(o, n) {
+      return n.coins == o.coins - price() && n.points == o.points && n.wkP == o.wkP && n.moP == o.moP
+        && n.owned.size() == o.owned.size() + 1 && n.owned.hasAll(o.owned);
+    }
+    // تغيير الصورة المستخدمة أو الاسم فقط
+    function settings(o, n) {
+      return n.points == o.points && n.coins == o.coins && n.owned == o.owned
+        && n.wkP == o.wkP && n.moP == o.moP && n.done == o.done && n.ach == o.ach;
+    }
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.uid == uid && schema(request.resource.data)
+        && request.resource.data.points == 0 && request.resource.data.coins == 0
+        && request.resource.data.owned.size() == 0 && request.resource.data.pfp == 'default'
+        && request.resource.data.wkP == 0 && request.resource.data.moP == 0;
+      allow update: if request.auth.uid == uid && schema(request.resource.data)
+        && (earn(resource.data, request.resource.data) || buy(resource.data, request.resource.data) || settings(resource.data, request.resource.data));
+      allow delete: if false;
+    }
+  }
+}
