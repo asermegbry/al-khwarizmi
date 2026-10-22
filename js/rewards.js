@@ -1,4 +1,5 @@
 /* الخوارزمي 4.6 — الحساب والنقاط والعملات والإنجازات والمتصدرون (Firebase) */
+(() => {
 const FBC = { apiKey: "AIzaSyAyKYLerz0uFIAuK8ik5FN7Ni0lVvH9-HM", authDomain: "al-khwarizmi-41ee9.firebaseapp.com", projectId: "al-khwarizmi-41ee9", storageBucket: "al-khwarizmi-41ee9.firebasestorage.app", messagingSenderId: "558553076061", appId: "1:558553076061:web:7fcd540f59ae63e98b58b4" };
 /* كل القيم هنا (غير نهائية). إن غيّرت PRICE غيّره أيضاً في firestore.rules */
 const REW = { PTS: 10, COIN: 5, READ: [30, 15], BADGE: [50, 25], PRICE: 150, VER: '13.1.0' };
@@ -140,3 +141,4 @@ async function doAuth(f) {
   try { if (AM === 'su') { PEND = v.n; await F.createUserWithEmailAndPassword(auth, v.e, v.p); } else await F.signInWithEmailAndPassword(auth, v.e, v.p); }
   catch (x) { er.textContent = ERR[x.code] ?? ('تعذّر الأمر: ' + (x.code || x.message)); }
 }
+})();
