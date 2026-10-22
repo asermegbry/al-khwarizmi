@@ -2,7 +2,7 @@
 (() => {
 const FBC = { apiKey: "AIzaSyAyKYLerz0uFIAuK8ik5FN7Ni0lVvH9-HM", authDomain: "al-khwarizmi-41ee9.firebaseapp.com", projectId: "al-khwarizmi-41ee9", storageBucket: "al-khwarizmi-41ee9.firebasestorage.app", messagingSenderId: "558553076061", appId: "1:558553076061:web:7fcd540f59ae63e98b58b4" };
 /* كل القيم هنا (غير نهائية). إن غيّرت PRICE غيّره أيضاً في firestore.rules */
-const REW = { PTS: 10, COIN: 5, READ: [30, 15], BADGE: [50, 25], PRICE: 150, VER: '13.1.0' };
+const REW = { PTS: 10, COIN: 5, READ: [30, 15], BADGE: [50, 25], PRICE: 750, DAILY: 25, VER: '13.1.0' };
 const TITLES = ['مبتدئ', 'طالب علم', 'متعلّم', 'باحث', 'دارس', 'مفكّر', 'عالم', 'حكيم'];
 const lvOf = p => Math.floor(Math.sqrt(p / 50)) + 1, lvAt = l => 50 * (l - 1) * (l - 1);
 const cnt = (d, p) => Object.keys(d).filter(k => k.startsWith(p)).length;
@@ -26,7 +26,7 @@ const pad = n => String(n).padStart(2, '0'), ymd = d => `${d.getFullYear()}-${pa
 const today = () => ymd(new Date()), yest = () => { const d = new Date(); d.setDate(d.getDate() - 1); return ymd(d); };
 const mo = () => today().slice(0, 7), wk = () => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 1) % 7)); return ymd(d); };
 const uref = () => F.doc(db, 'users', AUTH.uid);
-const av = (pf, nm, z = 40) => { const s = byId(pf); return s ? `<span class="av" style="--z:${z}px"><img src="${s.portrait}" alt=""${s.wide ? ' class="wd"' : ''}></span>` : `<span class="av d" style="--z:${z}px">${esc([...nm][0] || '؟')}</span>`; };
+const av = (pf, nm, z = 40) => { const s = byId(pf); return s ? `<span class="av${s.id === 'khwarizmi' ? ' gold' : ''}" style="--z:${z}px"><img src="${s.portrait}" alt=""${s.wide ? ' class="wd"' : ''}></span>` : `<span class="av d" style="--z:${z}px">${esc([...nm][0] || '؟')}</span>`; };
 const msg = t => `<p class="rm">${t}</p>`;
 
 /* ===== Firebase ===== */
@@ -54,7 +54,7 @@ async function commit(done, p, c, what) {
   const o = ME, day = today(), n = { ...o, done };
   n.points = o.points + p; n.coins = o.coins + c;
   n.wkP = (o.wkKey === wk() ? o.wkP : 0) + p; n.wkKey = wk(); n.moP = (o.moKey === mo() ? o.moP : 0) + p; n.moKey = mo();
-  if (o.lastDay !== day) { n.streak = o.lastDay === yest() ? o.streak + 1 : 1; n.lastDay = day; }
+  if (o.lastDay !== day) { n.streak = o.lastDay === yest() ? o.streak + 1 : 1; n.lastDay = day; n.coins += REW.DAILY; }
   const nb = BADGES.filter(b => !o.ach[b.id] && b.ok(n));
   if (nb.length) { n.ach = { ...o.ach }; nb.forEach(b => n.ach[b.id] = Date.now()); n.bd = Object.keys(n.ach).length; const bp = nb.length * REW.BADGE[0]; n.points += bp; n.wkP += bp; n.moP += bp; n.coins += nb.length * REW.BADGE[1]; }
   n.log = [{ t: Date.now(), x: what }, ...nb.map(b => ({ t: Date.now(), x: 'إنجاز جديد: ' + b.t })), ...(o.log || [])].slice(0, 8);
@@ -101,7 +101,10 @@ function view() {
 function pane() {
   const p = $('#pane'); if (!p || !ME) return;
   if (TAB === 'badges') return p.innerHTML = `<div class="bgs">${BADGES.map(b => `<div class="bg${ME.ach[b.id] ? '' : ' lk'}"><div class="hex"><i class="${b.img ? '' : 'ar'}" style="background-image:url(${b.img || ART(b.art)})"></i></div><h3>${b.t}</h3><p>${b.d}</p></div>`).join('')}</div><p class="rm">كل إنجاز يمنحك ${AR(REW.BADGE[0])} نقطة و${AR(REW.BADGE[1])} عملة مرة واحدة.</p>`;
-  if (TAB === 'shop') return p.innerHTML = `<p class="rm">اشترِ صورة عالم لحسابك بـ ${AR(REW.PRICE)} عملة (لكل الصور السعر نفسه). عملاتك: <b>${AR(ME.coins)}</b></p><div class="shop"><div class="rc sh">${av('default', ME.name, 84)}<h3>الصورة العادية</h3>${ME.pfp === 'default' ? '<span class="tag">مستخدمة</span>' : '<button class="btn alt" data-use="default">استخدمها</button>'}</div>${SCHOLARS.map(s => `<div class="rc sh">${av(s.id, '', 84)}<h3>${s.name}</h3>${ME.pfp === s.id ? '<span class="tag">مستخدمة</span>' : ME.owned.includes(s.id) ? `<button class="btn alt" data-use="${s.id}">استخدمها</button>` : `<button class="btn" data-buy="${s.id}"${ME.coins < REW.PRICE ? ' disabled' : ''}>اشترِ · ${AR(REW.PRICE)}</button>`}</div>`).join('')}</div>`;
+  if (TAB === 'shop') {
+    const sc = s => { const own = ME.owned.includes(s.id), g = s.id === 'khwarizmi'; return `<div class="rc sh${g ? ' gold' : ''}">${av(s.id, '', g ? 110 : 84)}<div class="shi">${g ? '<span class="rib">العالم الأول ★</span>' : ''}<h3>${s.name}</h3>${g ? '<p>صورة ذهبية خاصة لمؤسس علم الجبر.</p>' : ''}${ME.pfp === s.id ? '<span class="tag">مستخدمة</span>' : own ? `<button class="btn alt" data-use="${s.id}">استخدمها</button>` : `<button class="btn${g ? ' gl' : ''}" data-buy="${s.id}"${ME.coins < REW.PRICE ? ' disabled' : ''}>اشترِ · ${AR(REW.PRICE)}</button>`}</div></div>`; };
+    return p.innerHTML = `<p class="rm">اشترِ صورة عالم لحسابك بـ ${AR(REW.PRICE)} عملة (السعر نفسه لكل الصور). عملاتك: <b>${AR(ME.coins)}</b>. تحصل أيضاً على ${AR(REW.DAILY)} عملة مكافأة عند أول نشاط كل يوم.</p><div class="shop">${sc(byId('khwarizmi'))}<div class="rc sh">${av('default', ME.name, 84)}<div class="shi"><h3>الصورة العادية</h3>${ME.pfp === 'default' ? '<span class="tag">مستخدمة</span>' : '<button class="btn alt" data-use="default">استخدمها</button>'}</div></div>${SCHOLARS.filter(x => x.id !== 'khwarizmi').map(sc).join('')}</div>`;
+  }
   const rows = LB[PER] && LB[PER].rows, f = FLD[PER];
   const per = `<div class="pt">${[['all', 'كل الوقت'], ['wk', 'أسبوعي'], ['mo', 'شهري']].map(([k, t]) => `<button class="${k === PER ? 'on' : ''}" data-per="${k}">${t}</button>`).join('')}</div>`;
   const act = `<div class="rc"><h3>آخر نشاط</h3>${(ME.log || []).length ? ME.log.map(l => `<p class="lg">${esc(l.x)}<small>${new Date(l.t).toLocaleDateString('ar-EG')}</small></p>`).join('') : msg('ابدأ اختباراً أو لعبة وسيظهر نشاطك هنا.')}</div>`;
