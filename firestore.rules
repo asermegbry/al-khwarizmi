@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // السعر هنا يجب أن يطابق REW.PRICE في js/rewards.js
-    function price() { return 150; }
+    function price() { return 750; }
     function ids() { return ['khwarizmi','idrisi','farabi','biruni','haithm','sina','maqrizi','razi']; }
     function schema(n) {
       return n.keys().hasOnly(['name','points','coins','pfp','owned','done','ach','bd','wkKey','wkP','moKey','moP','streak','lastDay','log','t'])
