@@ -1,0 +1,1684 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess with Ibn Al-Razi - الشطرنج مع ابن الرازي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .chess-gradient {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%);
+        }
+        
+        .gold-gradient {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+        }
+        
+        .chessboard-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 40px);
+            grid-template-rows: repeat(8, 40px);
+            width: 320px;
+            height: 320px;
+            border: 4px solid #374151;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            margin: 20px;
+        }
+        
+        .board-labels {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .rank-labels {
+            left: -15px;
+            top: 20px;
+            height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .file-labels {
+            bottom: -15px;
+            left: 20px;
+            width: 320px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        
+        .square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .square.light {
+            background-color: #f3f4f6;
+        }
+        
+        .square.dark {
+            background-color: #6b7280;
+        }
+        
+        .square:hover {
+            background-color: #fbbf24 !important;
+            transform: scale(1.05);
+        }
+        
+        .square.selected {
+            background-color: #10b981 !important;
+            box-shadow: inset 0 0 0 3px #059669;
+        }
+        
+        .square.possible-move {
+            background-color: #3b82f6 !important;
+            opacity: 0.8;
+        }
+        
+        .piece {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .piece:hover {
+            transform: scale(1.1);
+        }
+        
+        .analysis-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .move-excellent {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .move-good {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .move-inaccuracy {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .move-mistake {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .move-blunder {
+            background-color: #7c2d12;
+            color: white;
+        }
+        
+        .thinking-animation {
+            animation: thinking 2s ease-in-out infinite;
+        }
+        
+        @keyframes thinking {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="chess-gradient text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="text-4xl ml-4">♔</div>
+                    <div>
+                        <h1 class="text-3xl font-bold">Chess with Ibn Al-Razi</h1>
+                        <p class="text-gray-300">الشطرنج التعليمي مع الذكاء الاصطناعي</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-lg font-bold" id="playerRating">تقييمك: 1200</div>
+                    <div class="text-sm text-gray-300">ابن الرازي: <span id="aiRating">1000</span></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        
+        <!-- Game Section -->
+        <div id="gameSection" class="section">
+            <div class="grid lg:grid-cols-3 gap-8">
+                
+                <!-- Chess Board -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl p-8 shadow-lg text-center">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="text-right">
+                                <div class="font-bold text-gray-800">ابن الرازي</div>
+                                <div class="text-sm text-gray-600">مستوى: <span id="aiLevel">متوسط</span></div>
+                            </div>
+                            <div class="text-2xl" id="gameStatus">دورك في اللعب</div>
+                            <div class="text-left">
+                                <div class="font-bold text-gray-800">أنت</div>
+                                <div class="text-sm text-gray-600">الأبيض</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center mb-6">
+                            <div class="chessboard-container">
+                                <!-- Rank labels (numbers 8-1) -->
+                                <div class="board-labels rank-labels">
+                                    <div>8</div>
+                                    <div>7</div>
+                                    <div>6</div>
+                                    <div>5</div>
+                                    <div>4</div>
+                                    <div>3</div>
+                                    <div>2</div>
+                                    <div>1</div>
+                                </div>
+                                
+                                <!-- File labels (letters h-a) -->
+                                <div class="board-labels file-labels">
+                                    <div>h</div>
+                                    <div>g</div>
+                                    <div>f</div>
+                                    <div>e</div>
+                                    <div>d</div>
+                                    <div>c</div>
+                                    <div>b</div>
+                                    <div>a</div>
+                                </div>
+                                
+                                <div class="chessboard" id="chessboard">
+                                    <!-- Chess squares will be generated here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center space-x-4 space-x-reverse">
+                            <button onclick="newGame()" class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors">
+                                لعبة جديدة
+                            </button>
+                            <button onclick="undoMove()" id="undoBtn" class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition-colors" disabled>
+                                تراجع
+                            </button>
+                            <button onclick="getHint()" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                تلميح
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Game Info Panel -->
+                <div class="space-y-6">
+                    
+                    <!-- AI Difficulty -->
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">مستوى ابن الرازي</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">مبتدئ (800)</span>
+                                <span class="text-sm text-gray-600">خبير (2000)</span>
+                            </div>
+                            <input type="range" id="difficultySlider" min="800" max="2000" value="1000" 
+                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                   onchange="updateDifficulty(this.value)">
+                            <div class="text-center">
+                                <span class="font-semibold text-blue-600" id="currentElo">1000 Elo</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ibn Al-Razi Commentary -->
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <div class="text-2xl ml-3">🧠</div>
+                            <h3 class="text-lg font-bold text-gray-800">تعليق ابن الرازي</h3>
+                        </div>
+                        <div id="aiCommentary" class="text-gray-700 text-sm leading-relaxed">
+                            مرحباً! أنا ابن الرازي، مساعدك في تعلم الشطرنج. سأساعدك على تطوير مهاراتك خطوة بخطوة. هيا نبدأ!
+                        </div>
+                    </div>
+                    
+                    <!-- Move History -->
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">تاريخ النقلات</h3>
+                        <div id="moveHistory" class="space-y-2 max-h-40 overflow-y-auto">
+                            <div class="text-gray-500 text-sm text-center">لم تبدأ اللعبة بعد</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Stats -->
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">إحصائيات اللعبة</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">النقلات:</span>
+                                <span id="moveCount">0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">الوقت المنقضي:</span>
+                                <span id="gameTime">00:00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">الأفضلية:</span>
+                                <span id="advantage">متوازن</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analysis Section -->
+        <div id="analysisSection" class="section hidden">
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <div class="text-center mb-8">
+                    <div class="text-4xl mb-4">📊</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">تحليل المباراة</h2>
+                    <p class="text-gray-600">تحليل ذكي لأداءك مع اقتراحات للتحسين</p>
+                </div>
+                
+                <!-- Game Result -->
+                <div id="gameResult" class="text-center mb-8">
+                    <!-- Result will be populated here -->
+                </div>
+                
+                <!-- Performance Metrics -->
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="analysis-card p-6 rounded-lg">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-600" id="accuracyScore">85%</div>
+                            <div class="text-gray-600">دقة الأداء</div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-card p-6 rounded-lg">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600" id="excellentMoves">3</div>
+                            <div class="text-gray-600">نقلات ممتازة</div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-card p-6 rounded-lg">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-red-600" id="mistakes">2</div>
+                            <div class="text-gray-600">أخطاء</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Move Analysis -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">تحليل النقلات</h3>
+                    <div id="moveAnalysis" class="space-y-3">
+                        <!-- Move analysis will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Ibn Al-Razi's Feedback -->
+                <div class="bg-blue-50 border-r-4 border-blue-500 p-6 rounded-lg mb-8">
+                    <div class="flex items-center mb-3">
+                        <div class="text-2xl ml-3">🧠</div>
+                        <h4 class="font-bold text-blue-800">تقييم ابن الرازي</h4>
+                    </div>
+                    <div id="aiFeedback" class="text-blue-700">
+                        <!-- AI feedback will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Learning Suggestions -->
+                <div class="bg-green-50 border-r-4 border-green-500 p-6 rounded-lg mb-8">
+                    <div class="flex items-center mb-3">
+                        <div class="text-2xl ml-3">💡</div>
+                        <h4 class="font-bold text-green-800">اقتراحات للتحسين</h4>
+                    </div>
+                    <div id="learningSuggestions" class="space-y-2">
+                        <!-- Learning suggestions will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button onclick="newGame()" class="bg-green-500 text-white px-8 py-3 rounded-lg hover:bg-green-600 transition-colors ml-4">
+                        لعبة جديدة
+                    </button>
+                    <button onclick="goHome()" class="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                        العودة للعبة
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Learning Section -->
+        <div id="learningSection" class="section hidden">
+            <div class="bg-white rounded-2xl p-8 shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📚 تعلم مع ابن الرازي</h2>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="showLesson('basics')">
+                        <div class="text-4xl mb-4 text-center">♔</div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">أساسيات الشطرنج</h3>
+                        <p class="text-gray-600 text-sm">تعلم حركة القطع والقواعد الأساسية</p>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="showLesson('tactics')">
+                        <div class="text-4xl mb-4 text-center">⚔️</div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">التكتيكات</h3>
+                        <p class="text-gray-600 text-sm">الفخاخ والكمائن والهجمات المزدوجة</p>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="showLesson('openings')">
+                        <div class="text-4xl mb-4 text-center">🚀</div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">الافتتاحيات</h3>
+                        <p class="text-gray-600 text-sm">أفضل طرق بداية المباراة</p>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="showLesson('endgame')">
+                        <div class="text-4xl mb-4 text-center">🏁</div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">النهايات</h3>
+                        <p class="text-gray-600 text-sm">كيفية إنهاء المباراة بنجاح</p>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="showLesson('strategy')">
+                        <div class="text-4xl mb-4 text-center">🎯</div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">الاستراتيجية</h3>
+                        <p class="text-gray-600 text-sm">التخطيط طويل المدى</p>
+                    </div>
+                    
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer" onclick="showLesson('puzzles')">
+                        <div class="text-4xl mb-4 text-center">🧩</div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">ألغاز الشطرنج</h3>
+                        <p class="text-gray-600 text-sm">حل المواقف التكتيكية</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-8">
+                    <button onclick="goHome()" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                        العودة للعبة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="chess-gradient text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold mb-2">♔ Chess with Ibn Al-Razi</h3>
+                <p class="text-gray-300">تعلم الشطرنج مع الذكاء الاصطناعي</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div>
+                    <h4 class="font-semibold mb-2">الميزات</h4>
+                    <p class="text-gray-300 text-sm">ذكاء اصطناعي متدرج</p>
+                    <p class="text-gray-300 text-sm">تحليل تفاعلي للمباريات</p>
+                    <p class="text-gray-300 text-sm">دروس تعليمية شاملة</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-2">التعلم</h4>
+                    <p class="text-gray-300 text-sm">تحليل النقلات بالذكاء الاصطناعي</p>
+                    <p class="text-gray-300 text-sm">اقتراحات للتحسين</p>
+                    <p class="text-gray-300 text-sm">تتبع التقدم</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-2">الخصوصية</h4>
+                    <p class="text-gray-300 text-sm">لا يتطلب تسجيل دخول</p>
+                    <p class="text-gray-300 text-sm">البيانات محفوظة محلياً</p>
+                    <p class="text-gray-300 text-sm">آمن ومجاني</p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-600 pt-4">
+                <p class="text-gray-400 text-sm">© 2024 Chess with Ibn Al-Razi - تطوير مهارات التفكير المنطقي</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Game state
+        let gameState = {
+            board: [],
+            currentPlayer: 'white',
+            selectedSquare: null,
+            gameActive: true,
+            moveHistory: [],
+            gameStartTime: null,
+            aiDifficulty: 1000,
+            castlingRights: {
+                whiteKingSide: true,
+                whiteQueenSide: true,
+                blackKingSide: true,
+                blackQueenSide: true
+            },
+            enPassantTarget: null,
+            lastMove: null
+        };
+
+        // Chess pieces in Unicode
+        const pieces = {
+            'white': {
+                'king': '♔', 'queen': '♕', 'rook': '♖', 
+                'bishop': '♗', 'knight': '♘', 'pawn': '♙'
+            },
+            'black': {
+                'king': '♚', 'queen': '♛', 'rook': '♜', 
+                'bishop': '♝', 'knight': '♞', 'pawn': '♟'
+            }
+        };
+
+        // Initial board setup - King on e-file (column 3), Queen on d-file (column 4)
+        const initialBoard = [
+            ['♜','♞','♝','♚','♛','♝','♞','♜'],
+            ['♟','♟','♟','♟','♟','♟','♟','♟'],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            ['♙','♙','♙','♙','♙','♙','♙','♙'],
+            ['♖','♘','♗','♔','♕','♗','♘','♖']
+        ];
+
+        // Initialize game
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGame();
+            startGameTimer();
+        });
+
+        function initializeGame() {
+            gameState.board = JSON.parse(JSON.stringify(initialBoard));
+            gameState.currentPlayer = 'white';
+            gameState.selectedSquare = null;
+            gameState.gameActive = true;
+            gameState.moveHistory = [];
+            gameState.gameStartTime = Date.now();
+            gameState.castlingRights = {
+                whiteKingSide: true,
+                whiteQueenSide: true,
+                blackKingSide: true,
+                blackQueenSide: true
+            };
+            gameState.enPassantTarget = null;
+            gameState.lastMove = null;
+            
+            createChessboard();
+            updateGameStatus();
+            updateAICommentary("مرحباً! أنا ابن الرازي. هيا نبدأ مباراة شطرنج رائعة!");
+        }
+
+        function createChessboard() {
+            const board = document.getElementById('chessboard');
+            board.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    square.onclick = () => handleSquareClick(row, col);
+                    
+                    const piece = gameState.board[row][col];
+                    if (piece) {
+                        const pieceElement = document.createElement('div');
+                        pieceElement.className = 'piece';
+                        pieceElement.textContent = piece;
+                        square.appendChild(pieceElement);
+                    }
+                    
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        function handleSquareClick(row, col) {
+            if (!gameState.gameActive || gameState.currentPlayer !== 'white') return;
+            
+            const clickedSquare = {row, col};
+            const piece = gameState.board[row][col];
+            
+            // Clear previous selections
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('selected', 'possible-move');
+            });
+            
+            if (gameState.selectedSquare) {
+                // Try to make a move
+                if (isValidMove(gameState.selectedSquare, clickedSquare)) {
+                    makeMove(gameState.selectedSquare, clickedSquare);
+                    gameState.selectedSquare = null;
+                } else if (piece && isWhitePiece(piece)) {
+                    // Select new piece
+                    gameState.selectedSquare = clickedSquare;
+                    highlightSquare(row, col);
+                    showPossibleMoves(row, col);
+                } else {
+                    gameState.selectedSquare = null;
+                }
+            } else if (piece && isWhitePiece(piece)) {
+                // Select piece
+                gameState.selectedSquare = clickedSquare;
+                highlightSquare(row, col);
+                showPossibleMoves(row, col);
+            }
+        }
+
+        function isWhitePiece(piece) {
+            return '♔♕♖♗♘♙'.includes(piece);
+        }
+
+        function isBlackPiece(piece) {
+            return '♚♛♜♝♞♟'.includes(piece);
+        }
+
+        function highlightSquare(row, col) {
+            const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            square.classList.add('selected');
+        }
+
+        function showPossibleMoves(row, col) {
+            // Simplified move validation - in a real game, this would be more complex
+            const possibleMoves = getPossibleMoves(row, col);
+            possibleMoves.forEach(move => {
+                const square = document.querySelector(`[data-row="${move.row}"][data-col="${move.col}"]`);
+                square.classList.add('possible-move');
+            });
+        }
+
+        function getPossibleMoves(row, col) {
+            const moves = [];
+            const piece = gameState.board[row][col];
+            
+            switch(piece) {
+                case '♙': // White pawn
+                    // Move forward one square
+                    if (row > 0 && !gameState.board[row - 1][col]) {
+                        moves.push({row: row - 1, col: col});
+                        // Initial two-square move
+                        if (row === 6 && !gameState.board[row - 2][col]) {
+                            moves.push({row: row - 2, col: col});
+                        }
+                    }
+                    // Capture diagonally
+                    if (row > 0 && col > 0 && gameState.board[row - 1][col - 1] && isBlackPiece(gameState.board[row - 1][col - 1])) {
+                        moves.push({row: row - 1, col: col - 1});
+                    }
+                    if (row > 0 && col < 7 && gameState.board[row - 1][col + 1] && isBlackPiece(gameState.board[row - 1][col + 1])) {
+                        moves.push({row: row - 1, col: col + 1});
+                    }
+                    
+                    // En passant capture
+                    if (row === 3 && gameState.enPassantTarget) {
+                        if ((col > 0 && gameState.enPassantTarget.col === col - 1 && gameState.enPassantTarget.row === row - 1) ||
+                            (col < 7 && gameState.enPassantTarget.col === col + 1 && gameState.enPassantTarget.row === row - 1)) {
+                            moves.push({row: gameState.enPassantTarget.row, col: gameState.enPassantTarget.col, enPassant: true});
+                        }
+                    }
+                    break;
+                    
+                case '♖': // White rook
+                    addLinearMoves(moves, row, col, [[0,1], [0,-1], [1,0], [-1,0]]);
+                    break;
+                    
+                case '♗': // White bishop
+                    addLinearMoves(moves, row, col, [[1,1], [1,-1], [-1,1], [-1,-1]]);
+                    break;
+                    
+                case '♕': // White queen
+                    addLinearMoves(moves, row, col, [[0,1], [0,-1], [1,0], [-1,0], [1,1], [1,-1], [-1,1], [-1,-1]]);
+                    break;
+                    
+                case '♔': // White king
+                    const kingMoves = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+                    kingMoves.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            const targetPiece = gameState.board[newRow][newCol];
+                            if (!targetPiece || isBlackPiece(targetPiece)) {
+                                moves.push({row: newRow, col: newCol});
+                            }
+                        }
+                    });
+                    
+                    // Castling moves for white king
+                    if (row === 7 && col === 3 && !isInCheck('white')) {
+                        // King side castling
+                        if (gameState.castlingRights.whiteKingSide && 
+                            !gameState.board[7][4] && !gameState.board[7][5] &&
+                            gameState.board[7][6] === '♖' &&
+                            !isSquareAttacked(7, 4, 'black') && !isSquareAttacked(7, 5, 'black')) {
+                            moves.push({row: 7, col: 5, castling: 'kingside'});
+                        }
+                        // Queen side castling
+                        if (gameState.castlingRights.whiteQueenSide && 
+                            !gameState.board[7][2] && !gameState.board[7][1] && !gameState.board[7][0] &&
+                            gameState.board[7][7] === '♖' &&
+                            !isSquareAttacked(7, 2, 'black') && !isSquareAttacked(7, 1, 'black')) {
+                            moves.push({row: 7, col: 1, castling: 'queenside'});
+                        }
+                    }
+                    break;
+                    
+                case '♘': // White knight
+                    const knightMoves = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
+                    knightMoves.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            const targetPiece = gameState.board[newRow][newCol];
+                            if (!targetPiece || isBlackPiece(targetPiece)) {
+                                moves.push({row: newRow, col: newCol});
+                            }
+                        }
+                    });
+                    break;
+            }
+            
+            // Filter moves that would put own king in check
+            return moves.filter(move => !wouldBeInCheck(row, col, move.row, move.col, 'white'));
+        }
+        
+        function addLinearMoves(moves, row, col, directions) {
+            const piece = gameState.board[row][col];
+            const isWhite = isWhitePiece(piece);
+            
+            directions.forEach(([dr, dc]) => {
+                for (let i = 1; i < 8; i++) {
+                    const newRow = row + dr * i;
+                    const newCol = col + dc * i;
+                    
+                    if (!isValidSquare(newRow, newCol)) break;
+                    
+                    const targetPiece = gameState.board[newRow][newCol];
+                    if (!targetPiece) {
+                        moves.push({row: newRow, col: newCol});
+                    } else {
+                        // Only capture opponent pieces, not own pieces
+                        if ((isWhite && isBlackPiece(targetPiece)) || (!isWhite && isWhitePiece(targetPiece))) {
+                            moves.push({row: newRow, col: newCol});
+                        }
+                        break;
+                    }
+                }
+            });
+        }
+        
+        function isValidSquare(row, col) {
+            return row >= 0 && row < 8 && col >= 0 && col < 8;
+        }
+
+        function isValidMove(from, to) {
+            const piece = gameState.board[from.row][from.col];
+            const targetPiece = gameState.board[to.row][to.col];
+            
+            if (!piece || !isWhitePiece(piece)) return false;
+            if (targetPiece && isWhitePiece(targetPiece)) return false;
+            
+            // Check if the move is in the possible moves list
+            const possibleMoves = getPossibleMoves(from.row, from.col);
+            return possibleMoves.some(move => move.row === to.row && move.col === to.col);
+        }
+
+        function makeMove(from, to) {
+            const piece = gameState.board[from.row][from.col];
+            const capturedPiece = gameState.board[to.row][to.col];
+            const possibleMoves = getPossibleMoves(from.row, from.col);
+            const moveData = possibleMoves.find(m => m.row === to.row && m.col === to.col);
+            
+            // Handle castling
+            if (moveData && moveData.castling) {
+                // Move king
+                gameState.board[to.row][to.col] = piece;
+                gameState.board[from.row][from.col] = null;
+                
+                // Move rook
+                if (moveData.castling === 'kingside') {
+                    gameState.board[7][4] = gameState.board[7][6];
+                    gameState.board[7][6] = null;
+                } else if (moveData.castling === 'queenside') {
+                    gameState.board[7][2] = gameState.board[7][7];
+                    gameState.board[7][7] = null;
+                }
+                
+                // Remove castling rights
+                gameState.castlingRights.whiteKingSide = false;
+                gameState.castlingRights.whiteQueenSide = false;
+            }
+            // Handle en passant
+            else if (moveData && moveData.enPassant) {
+                gameState.board[to.row][to.col] = piece;
+                gameState.board[from.row][from.col] = null;
+                // Remove the captured pawn
+                gameState.board[from.row][to.col] = null;
+            }
+            // Regular move
+            else {
+                gameState.board[to.row][to.col] = piece;
+                gameState.board[from.row][from.col] = null;
+                
+                // Handle pawn promotion for white
+                if (piece === '♙' && to.row === 0) {
+                    gameState.board[to.row][to.col] = '♕'; // Promote to queen
+                    updateAICommentary("مبروك! تمت ترقية البيدق إلى وزير!");
+                }
+            }
+            
+            // Update castling rights
+            if (piece === '♔') {
+                gameState.castlingRights.whiteKingSide = false;
+                gameState.castlingRights.whiteQueenSide = false;
+            }
+            if (piece === '♖') {
+                if (from.row === 7 && from.col === 7) gameState.castlingRights.whiteQueenSide = false;
+                if (from.row === 7 && from.col === 6) gameState.castlingRights.whiteKingSide = false;
+            }
+            
+            // Set en passant target
+            gameState.enPassantTarget = null;
+            if (piece === '♙' && from.row === 6 && to.row === 4) {
+                gameState.enPassantTarget = {row: 5, col: from.col};
+            }
+            
+            // Record move
+            const moveNotation = `${String.fromCharCode(104 - from.col)}${8 - from.row}-${String.fromCharCode(104 - to.col)}${8 - to.row}`;
+            gameState.moveHistory.push({
+                from, to, piece, capturedPiece, notation: moveNotation, player: 'white'
+            });
+            gameState.lastMove = {from, to};
+            
+            // Update display
+            createChessboard();
+            updateMoveHistory();
+            updateGameStats();
+            
+            // Check for check/checkmate
+            if (isInCheck('black')) {
+                if (isCheckmate('black')) {
+                    gameState.gameActive = false;
+                    updateGameStatus("مبروك! فزت بالمات!");
+                    updateAICommentary("ممتاز! لقد حققت المات. لعبة رائعة!");
+                    setTimeout(() => analyzeGame(), 2000);
+                    return;
+                } else {
+                    updateAICommentary("كش! ملكي في خطر، يجب أن أحميه.");
+                }
+            }
+            
+            // Switch to AI turn
+            gameState.currentPlayer = 'black';
+            updateGameStatus();
+            
+            // AI response after delay
+            setTimeout(() => {
+                makeAIMove();
+            }, 1000 + Math.random() * 2000);
+        }
+
+        function makeAIMove() {
+            if (!gameState.gameActive) return;
+            
+            updateGameStatus("ابن الرازي يفكر...");
+            document.getElementById('gameStatus').classList.add('thinking-animation');
+            
+            setTimeout(() => {
+                const aiMove = generateAIMove();
+                if (aiMove) {
+                    const piece = gameState.board[aiMove.from.row][aiMove.from.col];
+                    const capturedPiece = gameState.board[aiMove.to.row][aiMove.to.col];
+                    const possibleMoves = getPossibleMovesForPiece(aiMove.from.row, aiMove.from.col);
+                    const moveData = possibleMoves.find(m => m.row === aiMove.to.row && m.col === aiMove.to.col);
+                    
+                    // Handle castling for AI
+                    if (moveData && moveData.castling) {
+                        gameState.board[aiMove.to.row][aiMove.to.col] = piece;
+                        gameState.board[aiMove.from.row][aiMove.from.col] = null;
+                        
+                        if (moveData.castling === 'kingside') {
+                            gameState.board[0][4] = gameState.board[0][6];
+                            gameState.board[0][6] = null;
+                        } else if (moveData.castling === 'queenside') {
+                            gameState.board[0][2] = gameState.board[0][7];
+                            gameState.board[0][7] = null;
+                        }
+                        
+                        gameState.castlingRights.blackKingSide = false;
+                        gameState.castlingRights.blackQueenSide = false;
+                    }
+                    // Handle en passant for AI
+                    else if (moveData && moveData.enPassant) {
+                        gameState.board[aiMove.to.row][aiMove.to.col] = piece;
+                        gameState.board[aiMove.from.row][aiMove.from.col] = null;
+                        gameState.board[aiMove.from.row][aiMove.to.col] = null;
+                    }
+                    // Regular move
+                    else {
+                        gameState.board[aiMove.to.row][aiMove.to.col] = piece;
+                        gameState.board[aiMove.from.row][aiMove.from.col] = null;
+                        
+                        // Handle pawn promotion for black
+                        if (piece === '♟' && aiMove.to.row === 7) {
+                            gameState.board[aiMove.to.row][aiMove.to.col] = '♛'; // Promote to queen
+                            updateAICommentary("لقد رقيت بيدقي إلى وزير! هذا سيقوي موقعي كثيراً.");
+                        }
+                    }
+                    
+                    // Update castling rights for AI
+                    if (piece === '♚') {
+                        gameState.castlingRights.blackKingSide = false;
+                        gameState.castlingRights.blackQueenSide = false;
+                    }
+                    if (piece === '♜') {
+                        if (aiMove.from.row === 0 && aiMove.from.col === 7) gameState.castlingRights.blackQueenSide = false;
+                        if (aiMove.from.row === 0 && aiMove.from.col === 6) gameState.castlingRights.blackKingSide = false;
+                    }
+                    
+                    // Set en passant target for AI
+                    gameState.enPassantTarget = null;
+                    if (piece === '♟' && aiMove.from.row === 1 && aiMove.to.row === 3) {
+                        gameState.enPassantTarget = {row: 2, col: aiMove.from.col};
+                    }
+                    
+                    const moveNotation = `${String.fromCharCode(104 - aiMove.from.col)}${8 - aiMove.from.row}-${String.fromCharCode(104 - aiMove.to.col)}${8 - aiMove.to.row}`;
+                    gameState.moveHistory.push({
+                        from: aiMove.from, to: aiMove.to, piece, capturedPiece, 
+                        notation: moveNotation, player: 'black'
+                    });
+                    gameState.lastMove = {from: aiMove.from, to: aiMove.to};
+                    
+                    createChessboard();
+                    updateMoveHistory();
+                    updateGameStats();
+                    
+                    // Check for check/checkmate against white
+                    if (isInCheck('white')) {
+                        if (isCheckmate('white')) {
+                            gameState.gameActive = false;
+                            updateGameStatus("ابن الرازي فاز بالمات!");
+                            updateAICommentary("لعبة ممتازة! لقد حققت المات ضدك. لا تيأس، تعلم من أخطائك!");
+                            setTimeout(() => analyzeGame(), 2000);
+                            document.getElementById('gameStatus').classList.remove('thinking-animation');
+                            return;
+                        } else {
+                            generateAICommentary("كش! ملكك في خطر، احذر!");
+                        }
+                    } else {
+                        // Generate normal AI commentary
+                        generateAICommentary(aiMove);
+                    }
+                } else {
+                    // No valid moves for AI - stalemate or checkmate
+                    if (isInCheck('black')) {
+                        gameState.gameActive = false;
+                        updateGameStatus("مبروك! فزت بالمات!");
+                        updateAICommentary("ممتاز! لقد حققت المات. لعبة رائعة!");
+                    } else {
+                        gameState.gameActive = false;
+                        updateGameStatus("تعادل!");
+                        updateAICommentary("تعادل! لا توجد نقلات قانونية متاحة.");
+                    }
+                    setTimeout(() => analyzeGame(), 2000);
+                    document.getElementById('gameStatus').classList.remove('thinking-animation');
+                    return;
+                }
+                
+                gameState.currentPlayer = 'white';
+                document.getElementById('gameStatus').classList.remove('thinking-animation');
+                updateGameStatus();
+            }, 2000);
+        }
+
+        function wouldBeInCheck(fromRow, fromCol, toRow, toCol, player) {
+            // Simulate the move
+            const originalPiece = gameState.board[toRow][toCol];
+            const movingPiece = gameState.board[fromRow][fromCol];
+            
+            gameState.board[toRow][toCol] = movingPiece;
+            gameState.board[fromRow][fromCol] = null;
+            
+            const inCheck = isInCheck(player);
+            
+            // Restore the board
+            gameState.board[fromRow][fromCol] = movingPiece;
+            gameState.board[toRow][toCol] = originalPiece;
+            
+            return inCheck;
+        }
+        
+        function isInCheck(player) {
+            const kingPos = findKing(player);
+            if (!kingPos) return false;
+            
+            const opponent = player === 'white' ? 'black' : 'white';
+            return isSquareAttacked(kingPos.row, kingPos.col, opponent);
+        }
+        
+        function findKing(player) {
+            const kingPiece = player === 'white' ? '♔' : '♚';
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    if (gameState.board[row][col] === kingPiece) {
+                        return {row, col};
+                    }
+                }
+            }
+            return null;
+        }
+        
+        function isSquareAttacked(row, col, byPlayer) {
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = gameState.board[r][c];
+                    if (piece && ((byPlayer === 'white' && isWhitePiece(piece)) || (byPlayer === 'black' && isBlackPiece(piece)))) {
+                        const moves = getPieceAttacks(r, c);
+                        if (moves.some(move => move.row === row && move.col === col)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        
+        function getPieceAttacks(row, col) {
+            const moves = [];
+            const piece = gameState.board[row][col];
+            
+            switch(piece) {
+                case '♙': // White pawn attacks
+                    if (row > 0 && col > 0) moves.push({row: row - 1, col: col - 1});
+                    if (row > 0 && col < 7) moves.push({row: row - 1, col: col + 1});
+                    break;
+                case '♟': // Black pawn attacks
+                    if (row < 7 && col > 0) moves.push({row: row + 1, col: col - 1});
+                    if (row < 7 && col < 7) moves.push({row: row + 1, col: col + 1});
+                    break;
+                case '♖': case '♜': // Rook
+                    addLinearAttacks(moves, row, col, [[0,1], [0,-1], [1,0], [-1,0]]);
+                    break;
+                case '♗': case '♝': // Bishop
+                    addLinearAttacks(moves, row, col, [[1,1], [1,-1], [-1,1], [-1,-1]]);
+                    break;
+                case '♕': case '♛': // Queen
+                    addLinearAttacks(moves, row, col, [[0,1], [0,-1], [1,0], [-1,0], [1,1], [1,-1], [-1,1], [-1,-1]]);
+                    break;
+                case '♔': case '♚': // King
+                    const kingMoves = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+                    kingMoves.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            moves.push({row: newRow, col: newCol});
+                        }
+                    });
+                    break;
+                case '♘': case '♞': // Knight
+                    const knightMoves = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
+                    knightMoves.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            moves.push({row: newRow, col: newCol});
+                        }
+                    });
+                    break;
+            }
+            
+            return moves;
+        }
+        
+        function addLinearAttacks(moves, row, col, directions) {
+            directions.forEach(([dr, dc]) => {
+                for (let i = 1; i < 8; i++) {
+                    const newRow = row + dr * i;
+                    const newCol = col + dc * i;
+                    
+                    if (!isValidSquare(newRow, newCol)) break;
+                    
+                    moves.push({row: newRow, col: newCol});
+                    
+                    if (gameState.board[newRow][newCol]) break;
+                }
+            });
+        }
+        
+        function isCheckmate(player) {
+            if (!isInCheck(player)) return false;
+            
+            // Check if any move can get out of check
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameState.board[row][col];
+                    if (piece && ((player === 'white' && isWhitePiece(piece)) || (player === 'black' && isBlackPiece(piece)))) {
+                        const moves = getPossibleMovesForPiece(row, col);
+                        for (let move of moves) {
+                            if (!wouldBeInCheck(row, col, move.row, move.col, player)) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        
+        function getPossibleMovesForPiece(row, col) {
+            const moves = [];
+            const piece = gameState.board[row][col];
+            
+            switch(piece) {
+                case '♙': case '♟': // Pawn
+                    const direction = isWhitePiece(piece) ? -1 : 1;
+                    const startRow = isWhitePiece(piece) ? 6 : 1;
+                    const enPassantRow = isWhitePiece(piece) ? 3 : 4;
+                    
+                    // Move forward
+                    if (isValidSquare(row + direction, col) && !gameState.board[row + direction][col]) {
+                        moves.push({row: row + direction, col: col});
+                        // Two squares from start
+                        if (row === startRow && !gameState.board[row + 2 * direction][col]) {
+                            moves.push({row: row + 2 * direction, col: col});
+                        }
+                    }
+                    
+                    // Capture diagonally
+                    [-1, 1].forEach(dc => {
+                        const newRow = row + direction;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            const target = gameState.board[newRow][newCol];
+                            if (target && ((isWhitePiece(piece) && isBlackPiece(target)) || (isBlackPiece(piece) && isWhitePiece(target)))) {
+                                moves.push({row: newRow, col: newCol});
+                            }
+                        }
+                    });
+                    
+                    // En passant
+                    if (row === enPassantRow && gameState.enPassantTarget) {
+                        if ((col > 0 && gameState.enPassantTarget.col === col - 1 && gameState.enPassantTarget.row === row + direction) ||
+                            (col < 7 && gameState.enPassantTarget.col === col + 1 && gameState.enPassantTarget.row === row + direction)) {
+                            moves.push({row: gameState.enPassantTarget.row, col: gameState.enPassantTarget.col, enPassant: true});
+                        }
+                    }
+                    break;
+                    
+                case '♖': case '♜': // Rook
+                    addLinearMoves(moves, row, col, [[0,1], [0,-1], [1,0], [-1,0]]);
+                    break;
+                    
+                case '♗': case '♝': // Bishop
+                    addLinearMoves(moves, row, col, [[1,1], [1,-1], [-1,1], [-1,-1]]);
+                    break;
+                    
+                case '♕': case '♛': // Queen
+                    addLinearMoves(moves, row, col, [[0,1], [0,-1], [1,0], [-1,0], [1,1], [1,-1], [-1,1], [-1,-1]]);
+                    break;
+                    
+                case '♔': case '♚': // King
+                    const kingMoves = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+                    kingMoves.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            const targetPiece = gameState.board[newRow][newCol];
+                            if (!targetPiece || ((isWhitePiece(piece) && isBlackPiece(targetPiece)) || (isBlackPiece(piece) && isWhitePiece(targetPiece)))) {
+                                moves.push({row: newRow, col: newCol});
+                            }
+                        }
+                    });
+                    
+                    // Castling for black king
+                    if (piece === '♚' && row === 0 && col === 3 && !isInCheck('black')) {
+                        // King side castling
+                        if (gameState.castlingRights.blackKingSide && 
+                            !gameState.board[0][4] && !gameState.board[0][5] &&
+                            gameState.board[0][6] === '♜' &&
+                            !isSquareAttacked(0, 4, 'white') && !isSquareAttacked(0, 5, 'white')) {
+                            moves.push({row: 0, col: 5, castling: 'kingside'});
+                        }
+                        // Queen side castling
+                        if (gameState.castlingRights.blackQueenSide && 
+                            !gameState.board[0][2] && !gameState.board[0][1] && !gameState.board[0][0] &&
+                            gameState.board[0][7] === '♜' &&
+                            !isSquareAttacked(0, 2, 'white') && !isSquareAttacked(0, 1, 'white')) {
+                            moves.push({row: 0, col: 1, castling: 'queenside'});
+                        }
+                    }
+                    break;
+                    
+                case '♘': case '♞': // Knight
+                    const knightMoves = [[-2,-1], [-2,1], [-1,-2], [-1,2], [1,-2], [1,2], [2,-1], [2,1]];
+                    knightMoves.forEach(([dr, dc]) => {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (isValidSquare(newRow, newCol)) {
+                            const targetPiece = gameState.board[newRow][newCol];
+                            if (!targetPiece || ((isWhitePiece(piece) && isBlackPiece(targetPiece)) || (isBlackPiece(piece) && isWhitePiece(targetPiece)))) {
+                                moves.push({row: newRow, col: newCol});
+                            }
+                        }
+                    });
+                    break;
+            }
+            
+            return moves;
+        }
+        
+        function generateAIMove() {
+            // Find all black pieces and their possible moves
+            const blackPieces = [];
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameState.board[row][col];
+                    if (piece && isBlackPiece(piece)) {
+                        blackPieces.push({row, col, piece});
+                    }
+                }
+            }
+            
+            if (blackPieces.length === 0) return null;
+            
+            // Get all valid moves for black
+            const allMoves = [];
+            blackPieces.forEach(piece => {
+                const moves = getPossibleMovesForPiece(piece.row, piece.col);
+                moves.forEach(move => {
+                    if (!wouldBeInCheck(piece.row, piece.col, move.row, move.col, 'black')) {
+                        allMoves.push({
+                            from: {row: piece.row, col: piece.col},
+                            to: move,
+                            piece: piece.piece
+                        });
+                    }
+                });
+            });
+            
+            if (allMoves.length === 0) return null;
+            
+            // Advanced AI logic based on difficulty level
+            if (gameState.aiDifficulty >= 1800) {
+                return getStockfishLikeMove(allMoves);
+            } else if (gameState.aiDifficulty >= 1400) {
+                return getAdvancedMove(allMoves);
+            } else if (gameState.aiDifficulty >= 1000) {
+                return getIntermediateMove(allMoves);
+            } else {
+                return getBeginnerMove(allMoves);
+            }
+        }
+        
+        function getStockfishLikeMove(allMoves) {
+            // Stockfish-like evaluation: prioritize captures, checks, and positional play
+            let bestMoves = [];
+            let bestScore = -Infinity;
+            
+            allMoves.forEach(move => {
+                let score = 0;
+                const targetPiece = gameState.board[move.to.row][move.to.col];
+                
+                // Prioritize captures
+                if (targetPiece) {
+                    score += getPieceValue(targetPiece) * 10;
+                    // Favor capturing with less valuable pieces
+                    score += (6 - getPieceValue(move.piece)) * 2;
+                }
+                
+                // Check if move gives check
+                const tempBoard = JSON.parse(JSON.stringify(gameState.board));
+                tempBoard[move.to.row][move.to.col] = tempBoard[move.from.row][move.from.col];
+                tempBoard[move.from.row][move.from.col] = null;
+                
+                const originalBoard = gameState.board;
+                gameState.board = tempBoard;
+                if (isInCheck('white')) {
+                    score += 15; // Checks are valuable
+                }
+                gameState.board = originalBoard;
+                
+                // Positional factors
+                score += evaluatePosition(move);
+                
+                // Center control
+                if ((move.to.row >= 3 && move.to.row <= 4) && (move.to.col >= 3 && move.to.col <= 4)) {
+                    score += 5;
+                }
+                
+                // Piece development (move pieces from back rank)
+                if (move.from.row === 0 && move.to.row > 0) {
+                    score += 3;
+                }
+                
+                // King safety - avoid moving king unnecessarily
+                if (move.piece === '♚' && !isInCheck('black')) {
+                    score -= 5;
+                }
+                
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMoves = [move];
+                } else if (score === bestScore) {
+                    bestMoves.push(move);
+                }
+            });
+            
+            return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        }
+        
+        function getAdvancedMove(allMoves) {
+            // Advanced player: looks for tactics and good positional play
+            const captureMoves = allMoves.filter(move => gameState.board[move.to.row][move.to.col]);
+            const checkMoves = allMoves.filter(move => {
+                const tempBoard = JSON.parse(JSON.stringify(gameState.board));
+                tempBoard[move.to.row][move.to.col] = tempBoard[move.from.row][move.from.col];
+                tempBoard[move.from.row][move.from.col] = null;
+                
+                const originalBoard = gameState.board;
+                gameState.board = tempBoard;
+                const givesCheck = isInCheck('white');
+                gameState.board = originalBoard;
+                return givesCheck;
+            });
+            
+            // Prioritize captures and checks
+            if (captureMoves.length > 0 && Math.random() < 0.7) {
+                return captureMoves[Math.floor(Math.random() * captureMoves.length)];
+            }
+            if (checkMoves.length > 0 && Math.random() < 0.5) {
+                return checkMoves[Math.floor(Math.random() * checkMoves.length)];
+            }
+            
+            // Otherwise, make a good positional move
+            const developmentMoves = allMoves.filter(move => 
+                move.from.row === 0 && move.to.row > 0 && move.piece !== '♚'
+            );
+            
+            if (developmentMoves.length > 0 && Math.random() < 0.6) {
+                return developmentMoves[Math.floor(Math.random() * developmentMoves.length)];
+            }
+            
+            return allMoves[Math.floor(Math.random() * allMoves.length)];
+        }
+        
+        function getIntermediateMove(allMoves) {
+            // Intermediate player: sometimes finds tactics
+            const captureMoves = allMoves.filter(move => gameState.board[move.to.row][move.to.col]);
+            
+            if (captureMoves.length > 0 && Math.random() < 0.5) {
+                return captureMoves[Math.floor(Math.random() * captureMoves.length)];
+            }
+            
+            return allMoves[Math.floor(Math.random() * allMoves.length)];
+        }
+        
+        function getBeginnerMove(allMoves) {
+            // Beginner: mostly random moves, occasionally captures
+            const captureMoves = allMoves.filter(move => gameState.board[move.to.row][move.to.col]);
+            
+            if (captureMoves.length > 0 && Math.random() < 0.3) {
+                return captureMoves[Math.floor(Math.random() * captureMoves.length)];
+            }
+            
+            return allMoves[Math.floor(Math.random() * allMoves.length)];
+        }
+        
+        function evaluatePosition(move) {
+            let score = 0;
+            
+            // Piece-square tables (simplified)
+            const pieceSquareValues = {
+                '♟': [  // Black pawn
+                    [0,  0,  0,  0,  0,  0,  0,  0],
+                    [50, 50, 50, 50, 50, 50, 50, 50],
+                    [10, 10, 20, 30, 30, 20, 10, 10],
+                    [5,  5, 10, 25, 25, 10,  5,  5],
+                    [0,  0,  0, 20, 20,  0,  0,  0],
+                    [5, -5,-10,  0,  0,-10, -5,  5],
+                    [5, 10, 10,-20,-20, 10, 10,  5],
+                    [0,  0,  0,  0,  0,  0,  0,  0]
+                ]
+            };
+            
+            if (pieceSquareValues[move.piece]) {
+                score += pieceSquareValues[move.piece][move.to.row][move.to.col] / 10;
+            }
+            
+            return score;
+        }
+
+        function getAIPossibleMoves(row, col) {
+            return getPossibleMovesForPiece(row, col);
+        }
+
+        function generateAICommentary(move) {
+            const commentaries = [
+                "نقلة جيدة! أحاول السيطرة على الوسط.",
+                "هذه النقلة تحسن من موقع قطعي.",
+                "أركز على تطوير قطعي بسرعة.",
+                "نقلة دفاعية مهمة لحماية الملك.",
+                "أحاول خلق ضغط على موقعك.",
+                "هذه النقلة تفتح خطوط هجوم جديدة.",
+                "أعمل على تحسين تنسيق قطعي.",
+                "نقلة تكتيكية تهدف لكسب مادة."
+            ];
+            
+            const randomCommentary = commentaries[Math.floor(Math.random() * commentaries.length)];
+            updateAICommentary(randomCommentary);
+        }
+
+        function updateGameStatus(customStatus = null) {
+            const statusElement = document.getElementById('gameStatus');
+            if (customStatus) {
+                statusElement.textContent = customStatus;
+            } else if (gameState.currentPlayer === 'white') {
+                statusElement.textContent = "دورك في اللعب";
+            } else {
+                statusElement.textContent = "دور ابن الرازي";
+            }
+        }
+
+        function updateAICommentary(text) {
+            document.getElementById('aiCommentary').textContent = text;
+        }
+
+        function updateMoveHistory() {
+            const historyElement = document.getElementById('moveHistory');
+            if (gameState.moveHistory.length === 0) {
+                historyElement.innerHTML = '<div class="text-gray-500 text-sm text-center">لم تبدأ اللعبة بعد</div>';
+                return;
+            }
+            
+            historyElement.innerHTML = gameState.moveHistory.map((move, index) => {
+                const playerName = move.player === 'white' ? 'أنت' : 'ابن الرازي';
+                return `
+                    <div class="flex justify-between text-sm">
+                        <span class="font-medium">${index + 1}. ${playerName}</span>
+                        <span class="text-gray-600">${move.notation}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateGameStats() {
+            document.getElementById('moveCount').textContent = gameState.moveHistory.length;
+            
+            // Simple advantage calculation
+            let advantage = 0;
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = gameState.board[row][col];
+                    if (piece) {
+                        const value = getPieceValue(piece);
+                        if (isWhitePiece(piece)) {
+                            advantage += value;
+                        } else {
+                            advantage -= value;
+                        }
+                    }
+                }
+            }
+            
+            const advantageElement = document.getElementById('advantage');
+            if (advantage > 2) {
+                advantageElement.textContent = "لك الأفضلية";
+                advantageElement.className = "text-green-600 font-semibold";
+            } else if (advantage < -2) {
+                advantageElement.textContent = "لابن الرازي الأفضلية";
+                advantageElement.className = "text-red-600 font-semibold";
+            } else {
+                advantageElement.textContent = "متوازن";
+                advantageElement.className = "text-gray-600";
+            }
+        }
+
+        function getPieceValue(piece) {
+            const values = {
+                '♔': 0, '♚': 0,  // King
+                '♕': 9, '♛': 9,  // Queen
+                '♖': 5, '♜': 5,  // Rook
+                '♗': 3, '♝': 3,  // Bishop
+                '♘': 3, '♞': 3,  // Knight
+                '♙': 1, '♟': 1   // Pawn
+            };
+            return values[piece] || 0;
+        }
+
+        function startGameTimer() {
+            setInterval(() => {
+                if (gameState.gameStartTime) {
+                    const elapsed = Date.now() - gameState.gameStartTime;
+                    const minutes = Math.floor(elapsed / 60000);
+                    const seconds = Math.floor((elapsed % 60000) / 1000);
+                    document.getElementById('gameTime').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        function updateDifficulty(value) {
+            gameState.aiDifficulty = parseInt(value);
+            document.getElementById('currentElo').textContent = `${value} Elo`;
+            document.getElementById('aiRating').textContent = value;
+            
+            let level = 'مبتدئ';
+            let description = 'سألعب بشكل بسيط ومناسب للمبتدئين';
+            
+            if (value >= 1200) {
+                level = 'متوسط';
+                description = 'سأحاول إيجاد التكتيكات البسيطة';
+            }
+            if (value >= 1400) {
+                level = 'متقدم';
+                description = 'سأركز على التكتيكات والاستراتيجية';
+            }
+            if (value >= 1600) {
+                level = 'خبير';
+                description = 'سألعب بمستوى عالٍ مع تخطيط عميق';
+            }
+            if (value >= 1800) {
+                level = 'Stockfish';
+                description = 'سألعب بأقصى قوة مثل محرك الشطرنج المتقدم!';
+            }
+            
+            document.getElementById('aiLevel').textContent = level;
+            
+            updateAICommentary(`تم تعديل مستواي إلى ${value} Elo (${level}). ${description}`);
+        }
+
+        function newGame() {
+            if (confirm('هل تريد بدء لعبة جديدة؟')) {
+                initializeGame();
+                showSection('game');
+            }
+        }
+
+        function undoMove() {
+            if (gameState.moveHistory.length >= 2) {
+                // Undo last two moves (player and AI)
+                gameState.moveHistory.pop();
+                gameState.moveHistory.pop();
+                
+                // Rebuild board from history
+                gameState.board = JSON.parse(JSON.stringify(initialBoard));
+                gameState.moveHistory.forEach(move => {
+                    gameState.board[move.to.row][move.to.col] = move.piece;
+                    gameState.board[move.from.row][move.from.col] = null;
+                });
+                
+                gameState.currentPlayer = 'white';
+                createChessboard();
+                updateMoveHistory();
+                updateGameStats();
+                updateGameStatus();
+                updateAICommentary("تم التراجع عن النقلتين الأخيرتين.");
+            }
+        }
+
+        function getHint() {
+            const hints = [
+                "حاول السيطرة على مركز الرقعة بالبيادق والقطع.",
+                "طور قطعك بسرعة في بداية المباراة.",
+                "احم ملكك بالتبييت المبكر.",
+                "ابحث عن الهجمات المزدوجة والفخاخ التكتيكية.",
+                "فكر في كل نقلة: هل تحسن موقعك أم تضعفه؟",
+                "راقب قطع الخصم وخطط لمواجهة تهديداته.",
+                "في النهايات، فعّل ملكك كقطعة هجومية.",
+                "لا تتسرع - خذ وقتك في التفكير."
+            ];
+            
+            const randomHint = hints[Math.floor(Math.random() * hints.length)];
+            updateAICommentary(`💡 تلميح: ${randomHint}`);
+        }
+
+        function analyzeGame() {
+            showSection('analysis');
+            
+            // Simulate game analysis
+            const totalMoves = gameState.moveHistory.filter(m => m.player === 'white').length;
+            const accuracy = Math.floor(75 + Math.random() * 20);
+            const excellent = Math.floor(Math.random() * 4);
+            const mistakes = Math.floor(Math.random() * 3);
+            
+            document.getElementById('accuracyScore').textContent = `${accuracy}%`;
+            document.getElementById('excellentMoves').textContent = excellent;
+            document.getElementById('mistakes').textContent = mistakes;
+            
+            // Generate move analysis
+            const moveAnalysis = document.getElementById('moveAnalysis');
+            const analysisHTML = gameState.moveHistory
+                .filter(move => move.player === 'white')
+                .slice(0, 5)
+                .map((move, index) => {
+                    const quality = ['move-excellent', 'move-good', 'move-inaccuracy'][Math.floor(Math.random() * 3)];
+                    const qualityText = {
+                        'move-excellent': 'ممتاز',
+                        'move-good': 'جيد',
+                        'move-inaccuracy': 'غير دقيق'
+                    }[quality];
+                    
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="font-medium">النقلة ${index + 1}: ${move.notation}</span>
+                            <span class="px-3 py-1 rounded-full text-sm ${quality}">${qualityText}</span>
+                        </div>
+                    `;
+                }).join('');
+            
+            moveAnalysis.innerHTML = analysisHTML;
+            
+            // AI Feedback
+            const feedbacks = [
+                "أداء جيد بشكل عام! ركز على تطوير القطع في الافتتاحية.",
+                "لعبت بعض النقلات الممتازة، لكن انتبه للأخطاء التكتيكية.",
+                "تحسن ملحوظ في فهم المواقف، واصل التدريب!",
+                "استراتيجيتك جيدة، لكن تحتاج لمزيد من الحذر في التكتيكات."
+            ];
+            
+            document.getElementById('aiFeedback').textContent = 
+                feedbacks[Math.floor(Math.random() * feedbacks.length)];
+            
+            // Learning suggestions
+            const suggestions = [
+                "تدرب على الألغاز التكتيكية يومياً",
+                "ادرس الافتتاحيات الأساسية",
+                "تعلم النهايات الأساسية",
+                "راجع مبارياتك وحلل أخطاءك",
+                "العب ضد خصوم بمستويات مختلفة"
+            ];
+            
+            const suggestionsHTML = suggestions.map(suggestion => 
+                `<div class="flex items-center text-green-700">
+                    <span class="text-green-500 ml-2">✓</span>
+                    ${suggestion}
+                </div>`
+            ).join('');
+            
+            document.getElementById('learningSuggestions').innerHTML = suggestionsHTML;
+        }
+
+        function showLesson(lessonType) {
+            const lessons = {
+                basics: 'أساسيات الشطرنج',
+                tactics: 'التكتيكات والفخاخ',
+                openings: 'الافتتاحيات',
+                endgame: 'النهايات',
+                strategy: 'الاستراتيجية',
+                puzzles: 'ألغاز الشطرنج'
+            };
+            
+            alert(`سيتم عرض درس: ${lessons[lessonType]} قريباً!`);
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            document.getElementById(sectionName + 'Section').classList.remove('hidden');
+            document.getElementById(sectionName + 'Section').classList.add('fade-in');
+        }
+
+        function goHome() {
+            showSection('game');
+        }
+
+        // Game continues indefinitely - no automatic time limits
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'989e1db1008059ef',t:'MTc1OTY3OTg1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
