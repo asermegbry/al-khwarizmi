@@ -130,5 +130,18 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if request.auth != null && (resource.data.u == request.auth.uid || isAdmin());
     }
+    // الإعجابات: وثيقة لكل إعجاب رقمها postId_uid فلا يزيد العضو على إعجاب واحد لكل منشور
+    match /topics/{tid}/likes/{lid} {
+      allow read: if request.auth != null && tid in topicIds();
+      allow create: if request.auth != null && tid in topicIds()
+        && request.resource.data.keys().hasOnly(['p','u','t'])
+        && request.resource.data.u == request.auth.uid
+        && request.resource.data.p is string && request.resource.data.p.size() <= 40
+        && lid == request.resource.data.p + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/topics/$(tid)/posts/$(request.resource.data.p))
+        && request.resource.data.t == request.time;
+      allow update: if false;
+      allow delete: if request.auth != null && (resource.data.u == request.auth.uid || isAdmin());
+    }
   }
 }
