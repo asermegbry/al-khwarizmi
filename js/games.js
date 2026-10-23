@@ -206,7 +206,6 @@ IMPL.timeline = root => {
 };
 
 /* ---- الشطرنج ---- */
-IMPL.chess = root => { root.innerHTML = `<iframe class="frame" src="games/chess.html" title="شطرنج الرازي"></iframe>`; root.parentElement.style.maxWidth = '1000px'; root.style.padding = '0'; };
 IMPL['quiz-biruni'] = root => runQuiz(root, Q_BIRUNI);
 IMPL['quiz-all'] = root => runQuiz(root, Q_ALL);
 

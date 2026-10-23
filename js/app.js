@@ -51,10 +51,11 @@ function kidSky() {
 const MASCOT = '<svg class="mascot" viewBox="0 0 120 120" aria-hidden="true"><path d="M60 6l16 33 36 5-26 25 6 36-32-17-32 17 6-36L8 44l36-5z" fill="#ffc21a" stroke="#f59a00" stroke-width="4" stroke-linejoin="round"/><circle cx="48" cy="58" r="6" fill="#2b2350"/><circle cx="72" cy="58" r="6" fill="#2b2350"/><circle cx="50" cy="56" r="2" fill="#fff"/><circle cx="74" cy="56" r="2" fill="#fff"/><path d="M48 73q12 12 24 0" fill="none" stroke="#2b2350" stroke-width="4" stroke-linecap="round"/><circle cx="38" cy="70" r="5" fill="#ff8fa3" opacity=".7"/><circle cx="82" cy="70" r="5" fill="#ff8fa3" opacity=".7"/></svg>';
 
 /* صورة: تجرّب صورة حقيقية في img/real/ أولاً ثم ترجع للافتراضية */
+const REAL_IMAGES = [];  // أضف هنا اسم أي صورة حقيقية وضعتها في img/real (بلا .jpg) ليستخدمها الموقع بدل الافتراضية
 function pic(def, realName, alt = '', cls = '') {
   const mb = /\.svg$|alg2\.png|book1/.test(def) ? 'mb' : '';
   const c = [cls, mb].filter(Boolean).join(' ');
-  if (!realName) return `<img class="${c}" src="${def}" alt="${alt}" loading="lazy">`;
+  if (!realName || !REAL_IMAGES.includes(realName)) return `<img class="${c}" src="${def}" alt="${alt}" loading="lazy">`;
   return `<img class="${c}" src="img/real/${realName}.jpg" alt="${alt}" loading="lazy" onerror="this.onerror=null;this.src='${def}';${mb ? "this.classList.add('mb')" : "this.classList.remove('mb')"}">`;
 }
 
@@ -86,7 +87,7 @@ function shell(page) {
   const ft = `<footer class="ft"><div class="band sm"></div><div class="wrap">
     <a class="logo" href="index.html"><img src="img/art/rosette-dark.svg" alt="">الخوارزمي</a>
     <nav>${NAV.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}</nav>
-    <small>الخوارزمي ٤.٦ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
+    <small>الخوارزمي ٤.٩ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
   document.body.insertAdjacentHTML('afterbegin', hd);
   document.body.insertAdjacentHTML('beforeend', ft);
   const b = $('.burger'), n = $('.nav');
@@ -109,7 +110,9 @@ function reveal() {
     e.classList.add('rv'); e.style.setProperty('--d', (e.classList.contains('st') ? 0 : (sib % 4) * 90) + 'ms'); io.observe(e);
   });
 }
+const REAL_BANNERS = [];  // أضف هنا اسم أي بانر وضعته في img/real (مثل 'banner-home') ليستخدمه الموقع بلا طلبات فاشلة
 function banner(el, file) {  // يستخدم صورة حقيقية إن وُجدت في img/real
+  if (!REAL_BANNERS.includes(file)) return;
   const im = new Image(); im.onload = () => { el.style.backgroundImage = `url(img/real/${file}.jpg)`; el.classList.remove('def'); el.classList.add('photo'); };
   im.src = `img/real/${file}.jpg`;
 }
@@ -302,7 +305,7 @@ function story() {
   shell('story');
   setTimeout(reveal, 0);
   $('#app').innerHTML = `<section class="sec"><div class="wrap">${title('الخوارزمي يتحدث', 'مقطع قصير يقدّم فيه محمد بن موسى الخوارزمي نفسه بصوت مدعوم بالذكاء الاصطناعي.')}
-    <div class="vid"><video controls playsinline preload="metadata" poster="img/images.jpg"><source src="videos/khwarizmi.mp4" type="video/mp4">متصفحك لا يدعم تشغيل الفيديو. <a href="videos/khwarizmi.mp4">حمّل الفيديو</a></video></div>
+    <div class="vid"><video controls playsinline preload="metadata" poster="img/portraits/khwarizmi.jpg"><source src="videos/khwarizmi.mp4" type="video/mp4">متصفحك لا يدعم تشغيل الفيديو. <a href="videos/khwarizmi.mp4">حمّل الفيديو</a></video></div>
     <p style="text-align:center;margin-top:22px"><a class="btn" href="scholar.html?s=khwarizmi">اقرأ عن الخوارزمي</a></p></div></section>`;
 }
 
