@@ -244,3 +244,37 @@
 [data-mode=kids] .ks{padding-bottom:46px;clip-path:ellipse(75% 100% at 50% 0)}
 .sch-hero + .sec{padding:34px 0 10px}
 @media (max-width:480px){.starbox{font-size:1rem;padding:6px 16px;gap:6px}.starbox span{font-size:1.3rem}}
+
+
+/* ===== 5.1: القائمة الجانبية (زر واحد في الشريط، وكل شيء بداخلها) ===== */
+.hd .wrap{justify-content:space-between}
+.mbtn{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 18px 0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--head);font:inherit;font-weight:800;font-size:1rem;cursor:pointer;flex:none;transition:border-color .2s,box-shadow .2s}
+.mbtn:hover{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,138,46,.18)}
+.mbi{display:grid;gap:4px;width:20px}.mbi i{display:block;height:2.5px;border-radius:2px;background:currentColor}
+.mbi i:nth-child(2){width:70%;justify-self:end}
+.mov{position:fixed;inset:0;z-index:90;background:rgba(4,10,24,.55);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .28s,visibility 0s .28s}
+.mov.open{opacity:1;visibility:visible;transition:opacity .28s}
+.mnu{position:fixed;z-index:91;top:0;bottom:0;inset-inline-end:0;width:min(390px,90vw);height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--card);border-inline-start:1px solid var(--line);box-shadow:20px 0 50px rgba(0,0,0,.28);translate:-104% 0;visibility:hidden;transition:translate .32s cubic-bezier(.2,.8,.2,1),visibility 0s .32s}
+.mnu.open{translate:0 0;visibility:visible;transition:translate .32s cubic-bezier(.2,.8,.2,1)}
+.mh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);flex:none}
+.mx{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--sky);color:var(--head);font-size:1.6rem;line-height:1;display:grid;place-items:center;cursor:pointer;transition:.2s}
+.mx:hover{border-color:var(--gold);rotate:90deg}
+.mbd{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px 18px 26px;display:flex;flex-direction:column;gap:18px}
+.mnu .tools{display:flex;gap:10px;flex-wrap:wrap}.mnu .tools:empty{display:none}
+.mnu .rch{flex:1 1 150px;justify-content:center;padding:9px 14px!important;font-size:1rem!important}
+.mnu .fch{flex:none;padding:7px 14px}
+.mnav{display:flex;flex-direction:column;gap:6px}
+.mnav a{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:14px;border:1px solid transparent;font-weight:700;font-size:1.06rem;color:var(--head);transition:.15s}
+.mnav a:hover{background:var(--sky);border-color:var(--line)}
+.mnav a.on{background:var(--on);color:#fff}
+.mnav a i{font-style:normal;font-size:1.35rem;opacity:.55;line-height:1}
+.mset{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:14px}
+.mrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mrow b{color:var(--muted);font-size:.92rem;font-weight:800}
+.mnu .msw{flex:1;max-width:270px}.mnu .msw button{flex:1;justify-content:center}.mnu .msw button span{display:inline}
+html.mlock{overflow:hidden}
+[data-mode=kids] .mnav a,[data-mode=kids] .mbtn{font-family:'Baloo Bhaijaan 2','Cairo',sans-serif}
+[data-mode=kids] .mnav a.on{background:linear-gradient(135deg,#7a4dff,#ff6fb1)}
+@media (max-width:400px){.mbt{display:none}.mbtn{padding:0 14px}}
+@media (prefers-reduced-motion:reduce){.mnu,.mnu.open,.mov,.mov.open{transition:none}}
+@media print{.mnu,.mov,.mbtn{display:none!important}}

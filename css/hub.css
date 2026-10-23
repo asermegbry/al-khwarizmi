@@ -93,3 +93,28 @@
 .ti.sm{width:46px;height:46px;border-radius:13px}
 .ci{display:inline-block;width:20px;height:20px}.ci svg{width:100%;height:100%}
 .pick{gap:8px}
+
+
+/* فقاعة الدردشة تستعمل الصنف mb الموجود في style.css بـ mix-blend-mode:multiply فكان يغمّقها في الوضع الداكن */
+.m .mb{mix-blend-mode:normal;filter:none}
+
+/* الوضع الداكن: فقاعات الدردشة أفتح وأوضح للقراءة */
+[data-theme=dark] .cbox{background:#14305c}
+[data-theme=dark] .m .mb{background:#2d5594;border-color:#5782c4}
+[data-theme=dark] .m .mb b{color:#c4dcff}
+[data-theme=dark] .m .mb span{color:#fff}
+[data-theme=dark] .m small{color:#d3e2fb}
+[data-theme=dark] .m.me .mb{background:#3d71bb;border-color:#7ea8e6}
+[data-theme=dark] .m.me .mb b{color:#fff}
+[data-theme=dark] .m .dx{color:#d3e2fb}
+[data-theme=dark] .cform input{background:#1b3a6b;border-color:#4670ad;color:#fff}
+[data-theme=dark] .cform input::placeholder{color:#b4c9ea}
+
+/* إعجابات المنشورات */
+.pfoot{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.lk{display:inline-flex;align-items:center;gap:8px;font:inherit;font-weight:800;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:5px 16px 5px 14px;cursor:pointer;transition:.15s}
+.lk svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;transition:transform .2s}
+.lk:hover{border-color:#e0556a;color:#e0556a}
+.lk.on{color:#e0556a;border-color:#e0556a;background:rgba(224,85,106,.12)}
+.lk.on svg{fill:currentColor;transform:scale(1.12)}
+[data-theme=dark] .lk.on,[data-theme=dark] .lk:hover{color:#ff7d90;border-color:#ff7d90}
