@@ -514,3 +514,15 @@ main{animation:pagein .6s ease both}
 /* عدد بطاقات الأوضاع يتبع عدد الأوضاع المتاحة */
 .modes3{grid-template-columns:repeat(var(--n,3),1fr);max-width:calc(var(--n,3) * 326px)}
 @media (max-width:900px){.modes3{grid-template-columns:1fr;max-width:420px}}
+
+/* ===== 4.9: تحسينات الشكل ===== */
+@media (max-width:480px){
+  .hd .wrap{gap:6px;padding-inline:10px}
+  .logo{font-size:1.05rem;gap:6px;min-width:0;flex:1 1 auto;white-space:nowrap}.logo img{width:26px;height:26px}
+  .tools{gap:5px}.msw{padding:2px}.msw button{padding:5px 8px;font-size:.8rem}
+  .tg,.burger{width:36px;height:36px}.rch{padding:6px 10px!important;font-size:.82rem!important}
+}
+@media (max-width:400px){
+  .logo{font-size:.95rem;gap:4px}.hd .logo img{display:none}
+  .tools{gap:4px}.msw button{padding:5px 6px}.tg,.burger{width:33px;height:33px}.rch{padding:5px 8px!important}
+}
