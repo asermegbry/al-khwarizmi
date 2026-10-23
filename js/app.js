@@ -1,4 +1,4 @@
-/* الخوارزمي 4.6 — الهيكل العام وصفحات الموقع */
+/* الخوارزمي 5.0 — الهيكل العام وصفحات الموقع */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 /* ===== الأوضاع الثلاثة: normal / kids / school — كل وضع يغيّر الموقع كله ===== */
@@ -16,8 +16,8 @@ document.documentElement.dataset.mode = MODE;
 const byMode = (n, k, s) => MODE === 'kids' ? k : MODE === 'school' ? s : n;
 const MODES = [['normal', 'عادي', '◆', 'الموقع كما هو: نبذة وقراءة وألعاب.'], ['kids', 'أطفال', '★', 'تصميم مرح، وشرح بلغة بسيطة، ونجوم وملصقات.'], ['school', 'مدرسة', '✎', 'دروس وأنشطة للمعلّم مع الطالب وسجلّ محفوظ.']].filter(m => SCHOOL_ON || m[0] !== 'school');
 const NAVS = {
-  normal: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['games.html', 'الألعاب', 'games'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
-  kids: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['activities.html', 'أنشطتي', 'activities'], ['games.html', 'ألعابي', 'games'], ['stickers.html', 'ملصقاتي', 'stickers'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
+  normal: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['games.html', 'الألعاب', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
+  kids: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['activities.html', 'أنشطتي', 'activities'], ['games.html', 'ألعابي', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['stickers.html', 'ملصقاتي', 'stickers'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
   school: [['index.html', 'الرئيسية', 'home'], ['lessons.html', 'الدروس', 'lessons'], ['teacher.html', 'دليل المعلّم', 'teacher'], ['record.html', 'سجلّ الطالب', 'record'], ['games.html', 'الألعاب', 'games'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']]
 };
 const NAV = NAVS[MODE];
@@ -87,7 +87,7 @@ function shell(page) {
   const ft = `<footer class="ft"><div class="band sm"></div><div class="wrap">
     <a class="logo" href="index.html"><img src="img/art/rosette-dark.svg" alt="">الخوارزمي</a>
     <nav>${NAV.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}</nav>
-    <small>الخوارزمي ٤.٩ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
+    <small>الخوارزمي ٥.٠ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
   document.body.insertAdjacentHTML('afterbegin', hd);
   document.body.insertAdjacentHTML('beforeend', ft);
   const b = $('.burger'), n = $('.nav');
