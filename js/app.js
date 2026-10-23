@@ -16,7 +16,7 @@ document.documentElement.dataset.mode = MODE;
 const byMode = (n, k, s) => MODE === 'kids' ? k : MODE === 'school' ? s : n;
 const MODES = [['normal', 'عادي', '◆', 'الموقع كما هو: نبذة وقراءة وألعاب.'], ['kids', 'أطفال', '★', 'تصميم مرح، وشرح بلغة بسيطة، ونجوم وملصقات.'], ['school', 'مدرسة', '✎', 'دروس وأنشطة للمعلّم مع الطالب وسجلّ محفوظ.']].filter(m => SCHOOL_ON || m[0] !== 'school');
 const NAVS = {
-  normal: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['games.html', 'الألعاب', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
+  normal: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['games.html', 'الألعاب', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['topics.html', 'المجتمع', 'topics'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
   kids: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['activities.html', 'أنشطتي', 'activities'], ['games.html', 'ألعابي', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['stickers.html', 'ملصقاتي', 'stickers'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
   school: [['index.html', 'الرئيسية', 'home'], ['lessons.html', 'الدروس', 'lessons'], ['teacher.html', 'دليل المعلّم', 'teacher'], ['record.html', 'سجلّ الطالب', 'record'], ['games.html', 'الألعاب', 'games'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']]
 };
@@ -81,17 +81,38 @@ function setTheme(t, btn) {
 function shell(page) {
   const hd = `<header class="hd"><div class="wrap">
     <a class="logo" href="index.html">${logoImg}الخوارزمي</a>
-    <nav class="nav" aria-label="التنقل الرئيسي">${NAV.map(([h, t, k]) => `<a href="${h}" class="${k === page ? 'on' : ''}">${t}</a>`).join('')}</nav>
-    <div class="tools">${modeSwitch()}<button class="tg" aria-label="تبديل الوضع الفاتح والداكن" title="الوضع الفاتح / الداكن">${SUN}${MOON}</button><button class="burger" aria-label="القائمة" aria-expanded="false">☰</button></div>
+    <button class="mbtn" type="button" aria-label="القائمة" aria-expanded="false" aria-controls="mnu"><span class="mbi" aria-hidden="true"><i></i><i></i><i></i></span><span class="mbt">القائمة</span></button>
   </div></header>`;
+  /* القائمة الجانبية: فيها كل شيء (الحساب والشعلة والتنقل والوضع والمظهر). الشارتان تُضافان إلى .tools من rewards.js و daily.js */
+  const menu = `<div class="mov"></div>
+  <aside class="mnu" id="mnu" aria-label="القائمة الرئيسية" aria-hidden="true" inert>
+    <div class="mh"><a class="logo" href="index.html">${logoImg}الخوارزمي</a><button class="mx" type="button" aria-label="إغلاق القائمة">×</button></div>
+    <div class="mbd">
+      <div class="tools"></div>
+      <nav class="mnav" aria-label="التنقل الرئيسي">${NAV.map(([h, t, k]) => `<a href="${h}" class="${k === page ? 'on' : ''}"${k === page ? ' aria-current="page"' : ''}><span>${t}</span><i aria-hidden="true">‹</i></a>`).join('')}</nav>
+      <div class="mset">
+        <div class="mrow"><b>الوضع</b>${modeSwitch()}</div>
+        <div class="mrow"><b>المظهر</b><button class="tg" type="button" aria-label="تبديل الوضع الفاتح والداكن" title="الوضع الفاتح / الداكن">${SUN}${MOON}</button></div>
+      </div>
+    </div>
+  </aside>`;
   const ft = `<footer class="ft"><div class="band sm"></div><div class="wrap">
     <a class="logo" href="index.html"><img src="img/art/rosette-dark.svg" alt="">الخوارزمي</a>
     <nav>${NAV.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}</nav>
     <small>الخوارزمي ٥.٠ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
-  document.body.insertAdjacentHTML('afterbegin', hd);
+  document.body.insertAdjacentHTML('afterbegin', hd + menu);
   document.body.insertAdjacentHTML('beforeend', ft);
-  const b = $('.burger'), n = $('.nav');
-  b.onclick = () => { const o = n.classList.toggle('open'); b.setAttribute('aria-expanded', o); };
+  const mb = $('.mbtn'), mn = $('#mnu'), mv = $('.mov'); let back = null;
+  const setM = o => {
+    mn.classList.toggle('open', o); mv.classList.toggle('open', o); mn.inert = !o;
+    mn.setAttribute('aria-hidden', !o); mb.setAttribute('aria-expanded', o);
+    document.documentElement.classList.toggle('mlock', o);
+    if (o) { back = document.activeElement; $('.mx').focus(); } else if (back) { try { back.focus(); } catch (e) { } back = null; }
+  };
+  mb.onclick = () => setM(!mn.classList.contains('open'));
+  mv.onclick = $('.mx').onclick = () => setM(false);
+  addEventListener('keydown', e => { if (e.key === 'Escape' && mn.classList.contains('open')) setM(false); });
+  mn.addEventListener('click', e => { if (e.target.closest('.mnav a')) setM(false); });
   $$('.msw button').forEach(b => b.onclick = () => setMode(b.dataset.m));
   kidSky(); swapReveal();
   const tg = $('.tg'); tg.onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark', tg);
