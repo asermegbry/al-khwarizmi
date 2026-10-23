@@ -81,5 +81,54 @@ service cloud.firestore {
         && request.resource.data.t == request.time;
       allow delete: if false;
     }
+  
+    // ===== المجتمع: المجالات والدردشة والمنشورات =====
+    function isAdmin() { return request.auth != null && request.auth.token.email == 'algorithmy5050@gmail.com'; }
+    function topicIds() { return ['coding','ai','eng','med','bio','plants','space','chem','env','math','cyber','biz','psy']; }
+    function imgOK(a) {
+      return a is list && a.size() <= 3
+        && (a.size() < 1 || (a[0] is string && a[0].size() < 350000))
+        && (a.size() < 2 || (a[1] is string && a[1].size() < 350000))
+        && (a.size() < 3 || (a[2] is string && a[2].size() < 350000));
+    }
+    // سجلّ الأعضاء: يكتب العضو بياناته فقط، ويقرؤها هو والمشرف فقط
+    match /members/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['email','name','topic','j','t'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 20
+        && request.resource.data.topic is string && request.resource.data.topic.size() <= 10
+        && request.resource.data.j == request.time && request.resource.data.t == request.time;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['email','name','topic','j','t'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 20
+        && request.resource.data.topic is string && request.resource.data.topic.size() <= 10
+        && request.resource.data.j == resource.data.j && request.resource.data.t == request.time;
+      allow delete: if false;
+    }
+    match /topics/{tid}/chat/{mid} {
+      allow read: if request.auth != null && tid in topicIds();
+      allow create: if request.auth != null && tid in topicIds()
+        && request.resource.data.keys().hasOnly(['u','n','p','x','t'])
+        && request.resource.data.u == request.auth.uid && request.resource.data.n == me().name && request.resource.data.p == me().pfp
+        && request.resource.data.x is string && request.resource.data.x.size() >= 1 && request.resource.data.x.size() <= 500
+        && request.resource.data.t == request.time;
+      allow update: if false;
+      allow delete: if request.auth != null && (resource.data.u == request.auth.uid || isAdmin());
+    }
+    match /topics/{tid}/posts/{pid} {
+      allow read: if request.auth != null && tid in topicIds();
+      allow create: if request.auth != null && tid in topicIds()
+        && request.resource.data.keys().hasOnly(['u','n','p','x','imgs','t'])
+        && request.resource.data.u == request.auth.uid && request.resource.data.n == me().name && request.resource.data.p == me().pfp
+        && request.resource.data.x is string && request.resource.data.x.size() <= 2000
+        && imgOK(request.resource.data.imgs)
+        && (request.resource.data.x.size() > 0 || request.resource.data.imgs.size() > 0)
+        && request.resource.data.t == request.time;
+      allow update: if false;
+      allow delete: if request.auth != null && (resource.data.u == request.auth.uid || isAdmin());
+    }
   }
 }
