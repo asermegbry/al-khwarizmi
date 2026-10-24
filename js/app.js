@@ -99,7 +99,7 @@ function shell(page) {
   const ft = `<footer class="ft"><div class="band sm"></div><div class="wrap">
     <a class="logo" href="index.html"><img src="img/art/rosette-dark.svg" alt="">الخوارزمي</a>
     <nav>${NAV.map(([h, t]) => `<a href="${h}">${t}</a>`).join('')}</nav>
-    <small>الخوارزمي ٥.٠ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
+    <small>الخوارزمي ٥.٢ — إحياء للعصر الذهبي لعلماء المسلمين</small></div></footer>`;
   document.body.insertAdjacentHTML('afterbegin', hd + menu);
   document.body.insertAdjacentHTML('beforeend', ft);
   const mb = $('.mbtn'), mn = $('#mnu'), mv = $('.mov'); let back = null;
