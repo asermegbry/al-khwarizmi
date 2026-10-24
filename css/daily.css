@@ -81,7 +81,6 @@
 
 @media(max-width:860px){.dgrid{grid-template-columns:1fr}.reset{margin-inline-start:0;text-align:start;width:100%}}
 @media(max-width:520px){
-  .fch{padding:2px 8px 2px 6px;font-size:.82rem}.fch .fl{--fs:20px}
   .fire .fl{--fs:68px}.fn b{font-size:2.1rem}
   .hon{padding:44px 0 48px}.hc{width:42px;height:42px;top:8px!important;bottom:auto}.hc.bl,.hc.br{top:auto!important;bottom:8px}
   .hs .av{--z:60px!important}.hs.h1 .av{--z:78px!important}.hs-n{padding:1px 10px;font-size:.85rem}.hs-m{width:26px;height:26px;font-size:.85rem}.crown{width:38px}
@@ -92,3 +91,12 @@
 .nav a{white-space:nowrap}
 @media(max-width:1280px) and (min-width:981px){.nav a{padding:8px 11px;font-size:.95rem}.nav{gap:2px}}
 .fn .z{font-size:1.15rem;color:var(--muted);font-weight:800}
+
+/* ===== 5.1: أسئلة علمية (أيقونة المجال، التفسير، زائر بلا حساب) ===== */
+.av.fi{display:grid;place-items:center;background:var(--sky,#eef3ff)}
+.av.fi img{width:78%;height:78%;max-width:none;object-fit:contain}
+.dq-e{margin:10px 0;padding:10px 14px;border-radius:12px;background:var(--sky);border:1px dashed var(--line);color:var(--ink);line-height:1.9;font-size:.95rem}
+.dq-e b{color:var(--head)}
+.hon-s.sm{font-size:.95rem;margin-top:2px}
+.dg{margin-top:10px;font-size:.9rem;line-height:1.8}
+.dcard .btn{margin-top:6px}

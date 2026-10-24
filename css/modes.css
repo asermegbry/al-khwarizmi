@@ -278,3 +278,14 @@ html.mlock{overflow:hidden}
 @media (max-width:400px){.mbt{display:none}.mbtn{padding:0 14px}}
 @media (prefers-reduced-motion:reduce){.mnu,.mnu.open,.mov,.mov.open{transition:none}}
 @media print{.mnu,.mov,.mbtn{display:none!important}}
+
+/* ===== 5.2: القائمة على الجوال — أكثر إحكاماً لتتسع كلها بلا تمرير ===== */
+@media (max-width:520px){
+  .mnu{width:min(360px,92vw)}
+  .mh{padding:8px 14px}
+  .mbd{padding:12px 14px 18px;gap:12px}
+  .mnav{gap:2px}
+  .mnav a{padding:9px 14px;font-size:1rem;border-radius:12px;min-height:44px}
+  .mset{padding-top:12px;gap:10px}
+}
+@media (max-height:700px) and (max-width:520px){ .mnav a{padding:7px 14px;min-height:40px} }
