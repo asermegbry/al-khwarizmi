@@ -178,7 +178,7 @@ async function click(e) {
     if (!me || me.chDay === T.key) return;
     const i = +b.dataset.gc, ok = T.opts[i].ok; GPICK = i; BUSY = true; paintAll();
     let rank = 0;
-    if (ok) {
+    if (ok && !me.hid) {   // الحساب المخفي (hid) لا يدخل لوحة الشرف
       try {
         const F = K.F(), db = K.db(), uid = K.auth().uid, r = F.doc(db, 'daily', T.key);
         await F.runTransaction(db, async tx => {

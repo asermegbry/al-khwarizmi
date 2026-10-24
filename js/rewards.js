@@ -2,6 +2,7 @@
 (() => {
 const FBC = { apiKey: "AIzaSyAyKYLerz0uFIAuK8ik5FN7Ni0lVvH9-HM", authDomain: "al-khwarizmi-41ee9.firebaseapp.com", projectId: "al-khwarizmi-41ee9", storageBucket: "al-khwarizmi-41ee9.firebasestorage.app", messagingSenderId: "558553076061", appId: "1:558553076061:web:7fcd540f59ae63e98b58b4" };
 /* كل القيم هنا (غير نهائية). إن غيّرت PRICE غيّره أيضاً في firestore.rules */
+const HIDE_MAIL = 'algorithmy5050@gmail.com';   /* هذا الحساب لا يظهر في المتصدرين ولا في لوحة الشرف (يطابق isAdmin() في firestore.rules) */
 const REW = { PTS: 10, COIN: 5, READ: [30, 15], BADGE: [50, 25], PRICE: 750, DAILY: 25, FIRE: [10, 5], CHAL: [25, 10], HON: [25, 15, 10], VER: '13.1.0' };
 const TITLES = ['مبتدئ', 'طالب علم', 'متعلّم', 'باحث', 'دارس', 'مفكّر', 'عالم', 'حكيم'];
 const lvOf = p => Math.floor(Math.sqrt(p / 50)) + 1, lvAt = l => 50 * (l - 1) * (l - 1);
@@ -21,7 +22,7 @@ const BADGES = [
 ];
 const ERR = { 'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة.', 'auth/email-already-in-use': 'هذا البريد مسجّل من قبل.', 'auth/weak-password': 'كلمة المرور ضعيفة (٦ أحرف على الأقل).', 'auth/invalid-email': 'البريد غير صالح.', 'auth/network-request-failed': 'لا يوجد اتصال بالإنترنت.', 'auth/unauthorized-domain': 'هذا النطاق غير مضاف في Firebase → Authentication → Settings → Authorized domains.', 'auth/operation-not-supported-in-this-environment': 'افتح الموقع عبر http أو https وليس كملف محلي.', 'auth/popup-closed-by-user': '' };
 
-let F = null, auth, db, AUTH, ME = null, FAIL = false, PEND = '', TAB = location.hash.slice(1) || 'board', PER = 'all', AM = 'in', RANK = null, RANKP = -1, unsub = null, nudged = false, making = false;
+let F = null, auth, db, AUTH, ME = null, FAIL = false, PEND = '', TAB = location.hash.slice(1) || 'board', PER = 'all', AM = 'in', RANK = null, RANKP = -1, unsub = null, nudged = false, making = false, hidTried = false;
 const LB = {}, FLD = { all: 'points', wk: 'wkP', mo: 'moP' };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = n => String(n).padStart(2, '0'), ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -39,7 +40,7 @@ const msg = t => `<p class="rm">${t}</p>`;
     F.onAuthStateChanged(auth, u => {
       AUTH = u; if (unsub) unsub(); unsub = null; ME = null; RANK = null; RANKP = -1;
       if (!u) return paint();
-      unsub = F.onSnapshot(F.doc(db, 'users', u.uid), s => { if (s.exists()) { ME = s.data(); if (RANKP !== ME.points) rank(); paint(); } else mk(u); }, e => { console.error(e); toast('تعذّر قراءة بياناتك. تحقق من قواعد Firestore.'); });
+      unsub = F.onSnapshot(F.doc(db, 'users', u.uid), s => { if (s.exists()) { ME = s.data(); if (ME.hid !== true && !hidTried && (u.email || '').toLowerCase() === HIDE_MAIL) { hidTried = true; F.updateDoc(uref(), { hid: true, t: F.serverTimestamp() }).catch(x => console.error(x)); } if (RANKP !== ME.points) rank(); paint(); } else mk(u); }, e => { console.error(e); toast('تعذّر قراءة بياناتك. تحقق من قواعد Firestore.'); });
     });
   } catch (e) { console.error(e); FAIL = true; paint(); }
 })();
@@ -129,7 +130,7 @@ async function loadLB(k) {
   const s = await F.getDocs(F.query(F.collection(db, 'users'), F.orderBy(f, 'desc'), F.limit(100)));
   let rows = s.docs.map(d => ({ id: d.id, ...d.data() }));
   if (k === 'wk') rows = rows.filter(r => r.wkKey === wk()); if (k === 'mo') rows = rows.filter(r => r.moKey === mo());
-  LB[k] = { t: Date.now(), rows: rows.filter(r => (r[f] || 0) > 0) };
+  LB[k] = { t: Date.now(), rows: rows.filter(r => (r[f] || 0) > 0 && r.hid !== true) };
 }
 function click(e) {
   const b = e.target.closest('[data-tab],[data-per],[data-buy],[data-use],[data-out],[data-am],#gg,#fp'); if (!b) return;
