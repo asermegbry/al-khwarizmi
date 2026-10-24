@@ -118,3 +118,28 @@
 .lk.on{color:#e0556a;border-color:#e0556a;background:rgba(224,85,106,.12)}
 .lk.on svg{fill:currentColor;transform:scale(1.12)}
 [data-theme=dark] .lk.on,[data-theme=dark] .lk:hover{color:#ff7d90;border-color:#ff7d90}
+
+
+/* ===== بانر المجتمع: صورة night-dunes بشفافية + اختيار المجال في الأعلى ===== */
+:root{--vo-tbn:.6}[data-theme=dark]{--vo-tbn:.78}
+.tbn{position:relative;isolation:isolate;overflow:hidden;border-radius:22px;padding:34px 22px 34px;margin-top:4px;text-align:center;background:#07142b;color:#f6e7bd;border:1px solid rgba(232,194,108,.55);box-shadow:var(--shadow)}
+.tbn::before{content:"";position:absolute;inset:0;z-index:-2;background:url(../img/google/night-dunes.jpg) center 62%/cover no-repeat;opacity:var(--vo-tbn)}
+.tbn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 50% 0,rgba(246,220,140,.22),transparent 70%),linear-gradient(180deg,rgba(7,20,43,.5),rgba(7,20,43,.15) 45%,rgba(7,20,43,.82))}
+.tbn-k{display:block;color:#e8c26c;font-weight:800;letter-spacing:.04em;font-size:.95rem}
+.tbn h2{font-size:clamp(1.9rem,6vw,2.7rem);color:#fff6d8;margin:2px 0 6px;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.tbn p{max-width:62ch;margin:0 auto;color:#e6edfb;line-height:1.9;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.tbn-c{position:absolute;width:30px;height:30px;border:2px solid rgba(232,194,108,.8);pointer-events:none}
+.tbn-c.tl{top:10px;left:10px;border-width:2px 0 0 2px;border-top-left-radius:10px}
+.tbn-c.tr{top:10px;right:10px;border-width:2px 2px 0 0;border-top-right-radius:10px}
+.tbn-c.bl{bottom:10px;left:10px;border-width:0 0 2px 2px;border-bottom-left-radius:10px}
+.tbn-c.br{bottom:10px;right:10px;border-width:0 2px 2px 0;border-bottom-right-radius:10px}
+.tchips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:18px}
+.tch{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border-radius:999px;background:rgba(7,20,43,.55);border:1px solid rgba(232,194,108,.5);color:#fff6d8;font-weight:700;font-size:.92rem;white-space:nowrap;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transition:.15s}
+.tch:hover,.tch.cur{background:linear-gradient(180deg,#f9e3a0,#c8962c);color:#3b2a14;border-color:#f9e3a0}
+.tci{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:hsl(var(--h,215) 70% 90%);flex:none}
+.tci svg,.tci img{width:18px;height:18px}
+@media(max-width:700px){
+  .tbn{padding:26px 14px 30px;border-radius:18px}
+  .tchips{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-6px;padding:2px 6px 8px;scrollbar-width:thin}
+  .tch{scroll-snap-align:start}
+}

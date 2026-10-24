@@ -47,7 +47,7 @@
 /* ===== لوحة الشرف: صورة من موقع Google بشفافية + ذهب ===== */
 .hon{position:relative;isolation:isolate;overflow:hidden;background:#07142b;color:#f6e7bd;text-align:center;padding:52px 0 56px}
 .hon.full{border-radius:22px;margin:22px 0;padding:44px 0 48px;box-shadow:var(--shadow)}
-.hon::before{content:"";position:absolute;inset:0;z-index:-3;background:url(../img/google/milkyway-dunes.jpg) center 45%/cover no-repeat;opacity:var(--vo-hon)}
+.hon::before{content:"";position:absolute;inset:0;z-index:-3;background:url(../img/google/night-dunes.jpg) center 60%/cover no-repeat;opacity:var(--vo-hon)}
 .hon::after{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(ellipse 70% 60% at 50% 0,rgba(246,220,140,.3),transparent 70%),linear-gradient(180deg,rgba(7,20,43,.55),rgba(7,20,43,.2) 42%,rgba(7,20,43,.86))}
 .hon-pat{position:absolute;inset:0;z-index:-1;pointer-events:none}
 .hon-pat::before{content:"";position:absolute;inset:0;background:url(../img/art/zellige-gold.svg);opacity:.55;-webkit-mask-image:linear-gradient(180deg,transparent,#000 45%,transparent);mask-image:linear-gradient(180deg,transparent,#000 45%,transparent)}
