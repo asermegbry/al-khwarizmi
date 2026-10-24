@@ -203,7 +203,7 @@ function paintHome() { const h = $('#hon-home'); if (h) h.innerHTML = honor(info
 function paintAll() { watch(); paintChip(); paintHome(); renderPage(); }
 
 { const s0 = shell; shell = function (p) { s0(p); const t = $('.tools'); if (t && !$('.fch')) t.insertAdjacentHTML('afterbegin', chipHtml()); }; }
-{ const h0 = PAGES.home; PAGES.home = () => { h0(); const a = $('#scholars'); if (a && !$('#hon-home')) { a.insertAdjacentHTML('beforebegin', '<div id="hon-home"></div>'); paintHome(); } }; }
+{ const h0 = PAGES.home; PAGES.home = () => { h0(); const a = $('#scholars'); if (a && !$('#hon-home')) { a.insertAdjacentHTML('afterend', '<div id="hon-home"></div>'); paintHome(); } }; }
 PAGES.daily = page;
 K.on(paintAll);
 
