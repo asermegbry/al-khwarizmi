@@ -30,8 +30,8 @@ service cloud.firestore {
         && n.get('chDay', '') == o.get('chDay', '') && n.get('chWins', 0) == o.get('chWins', 0);
     }
     function schema(n) {
-      return n.keys().hasOnly(['name','points','coins','pfp','owned','done','ach','bd','wkKey','wkP','moKey','moP','streak','lastDay','fire','fireDay','chDay','chOk','chWins','log','t'])
-        && n.get('fire', 0) is int && n.get('fireDay', '') is string && n.get('chDay', '') is string && n.get('chWins', 0) is int
+      return n.keys().hasOnly(['name','points','coins','pfp','owned','done','ach','bd','wkKey','wkP','moKey','moP','streak','lastDay','fire','fireDay','chDay','chOk','chWins','hid','log','t'])
+        && n.get('fire', 0) is int && n.get('fireDay', '') is string && n.get('chDay', '') is string && n.get('chWins', 0) is int && n.get('hid', false) is bool
         && n.name is string && n.name.size() >= 2 && n.name.size() <= 20
         && n.owned.size() <= 8 && n.owned.hasOnly(ids()) && n.log.size() <= 8
         && (n.pfp == 'default' || n.pfp in n.owned)
@@ -65,8 +65,11 @@ service cloud.firestore {
         && request.resource.data.owned.size() == 0 && request.resource.data.pfp == 'default'
         && request.resource.data.wkP == 0 && request.resource.data.moP == 0
         && request.resource.data.get('fire', 0) == 0 && request.resource.data.get('chWins', 0) == 0
-        && request.resource.data.get('fireDay', '') == '' && request.resource.data.get('chDay', '') == '';
+        && request.resource.data.get('fireDay', '') == '' && request.resource.data.get('chDay', '') == ''
+        && request.resource.data.get('hid', false) == false;
+      // hid: يضعه المشرف على حسابه فقط (يخفيه من المتصدرين ولوحة الشرف) ولا يغيّره أحد غيره
       allow update: if request.auth.uid == uid && schema(request.resource.data)
+        && (request.resource.data.get('hid', false) == resource.data.get('hid', false) || (isAdmin() && request.resource.data.get('hid', false) == true))
         && (earn(resource.data, request.resource.data) || buy(resource.data, request.resource.data) || settings(resource.data, request.resource.data));
       allow delete: if false;
     }
@@ -74,11 +77,11 @@ service cloud.firestore {
     function me() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
     match /daily/{day} {
       allow read: if true;
-      allow create: if request.auth != null && todayOK(day)
+      allow create: if request.auth != null && todayOK(day) && !me().get('hid', false)
         && request.resource.data.keys().hasOnly(['u','n','p','t'])
         && request.resource.data.u == [request.auth.uid] && request.resource.data.n == [me().name] && request.resource.data.p == [me().pfp]
         && request.resource.data.t == request.time;
-      allow update: if request.auth != null && todayOK(day)
+      allow update: if request.auth != null && todayOK(day) && !me().get('hid', false)
         && request.resource.data.keys().hasOnly(['u','n','p','t'])
         && resource.data.u.size() < 3 && !(request.auth.uid in resource.data.u)
         && request.resource.data.u == resource.data.u.concat([request.auth.uid])
