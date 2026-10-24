@@ -3,6 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // السعر هنا يجب أن يطابق REW.PRICE في js/rewards.js
     function price() { return 750; }
+    // عند إضافة عالم جديد: أضف معرّفه هنا وارفع الحد n.owned.size() <= 8 في schema أدناه
     function ids() { return ['khwarizmi','idrisi','farabi','biruni','haithm','sina','maqrizi','razi']; }
     // تاريخ اليوم بصيغة YYYY-MM-DD (توقيت القاهرة: نقبل UTC+2 أو UTC+3 بسبب التوقيت الصيفي)
     function dayStr(t) {
@@ -16,9 +17,13 @@ service cloud.firestore {
       return (n.get('fire', 0) == o.get('fire', 0) && n.get('fireDay', '') == o.get('fireDay', ''))
         || (todayOK(n.get('fireDay', '')) && n.get('fireDay', '') != o.get('fireDay', '') && n.get('fire', 0) >= 1 && n.get('fire', 0) <= o.get('fire', 0) + 1);
     }
+    // تحدي اليوم: يتغير مرة واحدة في اليوم، وزيادة chWins بواحد لا تُقبل إلا إذا كان معرّف المستخدم فعلاً في وثيقة daily/{اليوم}
     function chalOK(o, n) {
       return (n.get('chDay', '') == o.get('chDay', '') && n.get('chWins', 0) == o.get('chWins', 0))
-        || (todayOK(n.get('chDay', '')) && n.get('chDay', '') != o.get('chDay', '') && n.get('chWins', 0) <= o.get('chWins', 0) + 1);
+        || (todayOK(n.get('chDay', '')) && n.get('chDay', '') != o.get('chDay', '')
+            && (n.get('chWins', 0) == o.get('chWins', 0)
+                || (n.get('chWins', 0) == o.get('chWins', 0) + 1
+                    && request.auth.uid in get(/databases/$(database)/documents/daily/$(n.get('chDay', ''))).data.u)));
     }
     function dailySame(o, n) {
       return n.get('fire', 0) == o.get('fire', 0) && n.get('fireDay', '') == o.get('fireDay', '')
@@ -59,7 +64,8 @@ service cloud.firestore {
         && request.resource.data.points == 0 && request.resource.data.coins == 0
         && request.resource.data.owned.size() == 0 && request.resource.data.pfp == 'default'
         && request.resource.data.wkP == 0 && request.resource.data.moP == 0
-        && request.resource.data.get('fire', 0) == 0 && request.resource.data.get('chWins', 0) == 0;
+        && request.resource.data.get('fire', 0) == 0 && request.resource.data.get('chWins', 0) == 0
+        && request.resource.data.get('fireDay', '') == '' && request.resource.data.get('chDay', '') == '';
       allow update: if request.auth.uid == uid && schema(request.resource.data)
         && (earn(resource.data, request.resource.data) || buy(resource.data, request.resource.data) || settings(resource.data, request.resource.data));
       allow delete: if false;
