@@ -16,7 +16,7 @@ document.documentElement.dataset.mode = MODE;
 const byMode = (n, k, s) => MODE === 'kids' ? k : MODE === 'school' ? s : n;
 const MODES = [['normal', 'عادي', '◆', 'الموقع كما هو: نبذة وقراءة وألعاب.'], ['kids', 'أطفال', '★', 'تصميم مرح، وشرح بلغة بسيطة، ونجوم وملصقات.'], ['school', 'مدرسة', '✎', 'دروس وأنشطة للمعلّم مع الطالب وسجلّ محفوظ.']].filter(m => SCHOOL_ON || m[0] !== 'school');
 const NAVS = {
-  normal: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['games.html', 'الألعاب', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['topics.html', 'المجتمع', 'topics'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
+  normal: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['games.html', 'الألعاب', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['topics.html', 'المجتمع', 'topics'], ['course.html', 'الدورات', 'course'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
   kids: [['index.html', 'الرئيسية', 'home'], ['index.html#scholars', 'العلماء', 'scholars'], ['activities.html', 'أنشطتي', 'activities'], ['games.html', 'ألعابي', 'games'], ['daily.html', 'تحدي اليوم', 'daily'], ['stickers.html', 'ملصقاتي', 'stickers'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']],
   school: [['index.html', 'الرئيسية', 'home'], ['lessons.html', 'الدروس', 'lessons'], ['teacher.html', 'دليل المعلّم', 'teacher'], ['record.html', 'سجلّ الطالب', 'record'], ['games.html', 'الألعاب', 'games'], ['library.html', 'المكتبة', 'library'], ['story.html', 'القصة', 'story']]
 };
